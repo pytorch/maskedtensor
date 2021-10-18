@@ -1,24 +1,3 @@
 from .maskedtensor import MaskedTensor
-
-# Basic factory function
-def masked_tensor(data, mask, requires_grad=False):
-    data = data.clone().detach()
-    mask = mask.clone().detach()
-    return MaskedTensor(data, mask, requires_grad)
-
-# New function as_masked_tensor with autograd support to
-# convert torch.Tensor into a MaskedTensor with some user-defined
-# mask.
-class AsMaskedTensor(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, data, mask):
-        ctx.mark_non_differentiable(mask)
-        ctx.save_for_backward(mask)
-        return MaskedTensor(data, mask)
-  
-    @staticmethod
-    def backward(ctx, grad_output):
-        return grad_output, None
-
-def as_masked_tensor(data, mask):
-    return AsMaskedTensor.apply(data, mask)
+from .functions import masked_tensor
+from .functions import as_masked_tensor
