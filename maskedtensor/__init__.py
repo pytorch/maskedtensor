@@ -1,3 +1,5 @@
+import torch
+
 UNARY_FNS = [
     torch.ops.aten.cos,
     torch.ops.aten.sqrt,
