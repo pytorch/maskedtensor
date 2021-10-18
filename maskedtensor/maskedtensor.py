@@ -552,3 +552,6 @@ class MaskedTensor(torch.Tensor):
 
     def to_tensor(self, value):
         return get_data(self).masked_fill(~get_mask(self), value)
+
+    def mask(self):
+        return self.masked_mask
