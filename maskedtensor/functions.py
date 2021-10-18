@@ -1,4 +1,5 @@
 import torch
+from .maskedtensor import MaskedTensor
 
 # Basic factory function
 def masked_tensor(data, mask, requires_grad=False):
