@@ -1,9 +1,3 @@
-# @title
-# ^ remove this for a more easily readable cell
-# May the lord forgive me for the indentation in this cell.
-# If only there was an easily accessible autoformatter.
-# This code is hidden because it is quick and dirty.
-
 UNARY_FNS = [
     torch.ops.aten.cos,
     torch.ops.aten.sqrt,
