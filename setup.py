@@ -56,6 +56,7 @@ class clean(distutils.command.clean.clean):
         distutils.command.clean.clean.run(self)
 
 
+# Commented out sections we may need later on to enable C++ extension
 setuptools.setup(
     name=package_name,
     version=version,
@@ -73,7 +74,7 @@ setuptools.setup(
     zip_safe=True,
     cmdclass={
         "clean": clean,
-        "build_ext": BuildExtension.with_options(no_python_abi_suffix=True,),
+        # "build_ext": BuildExtension.with_options(no_python_abi_suffix=True,),
     },
     # install_requires=requirements,
     # ext_modules=get_extensions(),
