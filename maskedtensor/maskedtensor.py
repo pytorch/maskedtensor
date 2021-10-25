@@ -106,6 +106,7 @@ class MaskedSum(torch.autograd.Function):
         ctx.mark_non_differentiable(mask)
         ctx.save_for_backward(mask)
         data = get_data(input)
+        data = data.masked_fill(~mask, 0)
         return MaskedTensor(data.sum(), torch.any(mask))
 
     @staticmethod
