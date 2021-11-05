@@ -3,6 +3,7 @@ from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 
 UNARY_FNS = [
+    torch.ops.aten.acos,
     torch.ops.aten.cos,
     torch.ops.aten.sqrt,
     torch.ops.aten.log,
