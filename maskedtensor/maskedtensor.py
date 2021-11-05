@@ -3,6 +3,7 @@ from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 
 UNARY_FNS = [
+    torch.ops.aten.acos,
     torch.ops.aten.cos,
     torch.ops.aten.sqrt,
     torch.ops.aten.log,
@@ -106,6 +107,7 @@ class MaskedSum(torch.autograd.Function):
         ctx.mark_non_differentiable(mask)
         ctx.save_for_backward(mask)
         data = get_data(input)
+        data = data.masked_fill(~mask, 0)
         return MaskedTensor(data.sum(), torch.any(mask))
 
     @staticmethod
