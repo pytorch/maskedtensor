@@ -48,7 +48,6 @@ def _in_projection_packed(
     return linear(q, w_q, b_q), linear(k, w_k, b_k), linear(v, w_v, b_v)
 
 
-
 def masked_matmul(q, k, attn_mask):
     attn = torch.bmm(q, k.transpose(-2, -1))
     if attn_mask is not None:
@@ -103,14 +102,17 @@ def multi_head_attention_forward(
     # set up shape vars
     tgt_len, bsz, embed_dim = query.shape
     src_len, _, _ = key.shape
-    assert embed_dim == embed_dim_to_check, \
-        f"was expecting embedding dimension of {embed_dim_to_check}, but got {embed_dim}"
+    assert (
+        embed_dim == embed_dim_to_check
+    ), f"was expecting embedding dimension of {embed_dim_to_check}, but got {embed_dim}"
     if isinstance(embed_dim, torch.Tensor):
         # embed_dim can be a tensor when JIT tracing
-        head_dim = embed_dim.div(num_heads, rounding_mode='trunc')
+        head_dim = embed_dim.div(num_heads, rounding_mode="trunc")
     else:
         head_dim = embed_dim // num_heads
-    assert head_dim * num_heads == embed_dim, f"embed_dim {embed_dim} not divisible by num_heads {num_heads}"
+    assert (
+        head_dim * num_heads == embed_dim
+    ), f"embed_dim {embed_dim} not divisible by num_heads {num_heads}"
     assert not use_separate_proj_weight
     assert q_proj_weight is None
     assert k_proj_weight is None
@@ -123,19 +125,20 @@ def multi_head_attention_forward(
     assert not add_zero_attn
     assert key_padding_mask is None
 
-
     q, k, v = _in_projection_packed(query, key, value, in_proj_weight, in_proj_bias)
-
 
     # prep attention mask
     if attn_mask is not None:
-        assert attn_mask.is_floating_point() or attn_mask.dtype == torch.bool, \
-            f"Only float and bool types are supported for attn_mask, not {attn_mask.dtype}"
+        assert (
+            attn_mask.is_floating_point() or attn_mask.dtype == torch.bool
+        ), f"Only float and bool types are supported for attn_mask, not {attn_mask.dtype}"
         # ensure attn_mask's dim is 3
         assert attn_mask.dim() == 2
         correct_2d_size = (tgt_len, src_len)
         if attn_mask.shape != correct_2d_size:
-            raise RuntimeError(f"The shape of the 2D attn_mask is {attn_mask.shape}, but should be {correct_2d_size}.")
+            raise RuntimeError(
+                f"The shape of the 2D attn_mask is {attn_mask.shape}, but should be {correct_2d_size}."
+            )
         attn_mask = attn_mask.unsqueeze(0)
 
     #
@@ -161,7 +164,9 @@ def multi_head_attention_forward(
     #
     # (deep breath) calculate attention and out projection
     #
-    attn_output, attn_output_weights = _scaled_dot_product_attention(q, k, v, attn_mask, dropout_p)
+    attn_output, attn_output_weights = _scaled_dot_product_attention(
+        q, k, v, attn_mask, dropout_p
+    )
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
 

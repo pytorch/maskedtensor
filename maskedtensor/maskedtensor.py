@@ -342,11 +342,11 @@ class MaskedTensor(torch.Tensor):
             if func is torch.ops.aten.mm:
                 if VERBOSE:
                     print("input_mask1.transpose(0, 1): ", input_mask1.transpose(0, 1))
-                assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
+                # assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
             if func is torch.ops.aten.bmm:
                 if VERBOSE:
                     print("input_mask1.transpose(1, 2): ", input_mask1.transpose(1, 2))
-                assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
+                # assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
             return MaskedTensor(result_data, result_mask)
         if is_masked_tensor(input0):
             return cls.matmul(
@@ -477,6 +477,12 @@ class MaskedTensor(torch.Tensor):
             result_mask = func(mask)
             return MaskedTensor(result_data, result_mask)
         if func in [
+            torch.ops.aten.slice,
+            torch.ops.aten.slice_backward,
+            torch.ops.aten.select_backward,
+        ]:
+            return MaskedTensor(func(data, *args[1:]), func(mask, *args[1:]))
+        if func in [
             torch.ops.aten.index,
             torch.ops.aten.expand,
             torch.ops.aten.view,
@@ -520,6 +526,13 @@ class MaskedTensor(torch.Tensor):
                     get_data(grad_output), get_data(output), dim, get_data(self)
                 )
                 return MaskedTensor(grad_data, get_mask(self))
+            if is_masked_tensor(grad_output):
+                grad_data = torch.ops.aten._softmax_backward_data(
+                    get_data(grad_output), get_data(output), dim, self
+                )
+                if VERBOSE:
+                    print("grad_data: ", grad_data)
+                return MaskedTensor(grad_data, torch.ones_like(grad_data).bool())
         if func is torch.ops.aten.copy_:
             assert len(args) == 2
             assert masks_match(get_mask(args[0]), get_mask(args[1]))
@@ -547,6 +560,17 @@ class MaskedTensor(torch.Tensor):
             new_data = func(args[0], get_data(mx), get_data(my))
             new_mask = func(args[0], get_mask(mx), get_mask(my))
             return MaskedTensor(new_data, new_mask)
+        if func in [torch.ops.aten.cat]:
+            assert len(args) == 1
+            if VERBOSE:
+                print("args[0]: ", args[0])
+            # assert all(map(is_masked_tensor, args[0]))
+            all_data = [get_data(x) for x in args[0]]
+            all_mask = [get_mask(x) for x in args[0]]
+            new_data = torch.cat(all_data)
+            new_mask = torch.cat(all_mask)
+            res = MaskedTensor(new_data, new_mask)
+            return res
         return NotImplemented
 
     def __lt__(self, other):
