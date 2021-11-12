@@ -28,6 +28,35 @@ class TestMaskedTensor(TestCase):
         output_mt, _ = mha_mt(q, k, v)
         self.assertEqual(output_nn, output_mt)
 
+    def test_softmax(self):
+        x = torch.randn(3, 4) * 0.1
+        m = torch.tensor(
+            [
+                [True, True, True, False],
+                [False, True, False, True],
+                [True, True, False, False],
+            ]
+        )
+        mx = maskedtensor.masked_tensor(x, m, requires_grad=True)
+        ts = torch.softmax(mx, -1)
+        ts.sum().backward()
+        print("")
+        print("ts.mask():\n", ts.mask())
+        print("mx.mask():\n", mx.mask())
+        print("mx:\n", mx)
+        print("torch.softmax(mx):\n", ts)
+        print("mx.grad:\n", mx.grad)
+        xinf = x.masked_fill(~m, float('-inf')).detach().clone().requires_grad_()
+        tsinf = torch.softmax(xinf, -1)
+        print("xinf")
+        print(xinf)
+        print("tsinf")
+        print(tsinf)
+        print("tsinf.sum()")
+        print(tsinf.sum())
+        print("xinf.grad")
+        print(xinf.grad)
+
     def test_mha_issue_41508(self):
         # https://github.com/pytorch/pytorch/issues/41508
         # TODO:
@@ -64,10 +93,10 @@ class TestMaskedTensor(TestCase):
         print("")
         print("0 scores")
         print(scores)
-        loss = output[0, :].sum()
+        loss0 = output[0, :].sum()
         print("0 loss")
-        print(loss)
-        loss.backward()
+        print(loss0)
+        loss0.backward()
         print("0 grads")
         for n, p in attn_nn.named_parameters():
             print(0, n, p.grad)
@@ -82,13 +111,15 @@ class TestMaskedTensor(TestCase):
         output, scores = attn_mt(x, x_mt, x, attn_mask=attn_mask)
         print("1 scores")
         print(scores)
-        loss = output[0, :].sum()
+        loss1 = output[0, :].sum()
         print("1 loss")
-        print(loss)
-        loss.backward()
+        print(loss1)
+        loss1.backward()
         print("1 grads")
         for n, p in attn_nn.named_parameters():
             print(1, n, p.grad)
+
+        self.assertEqual(loss0, loss1.masked_data)
 
 
 if __name__ == "__main__":

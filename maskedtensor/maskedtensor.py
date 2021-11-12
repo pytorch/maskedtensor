@@ -1,6 +1,7 @@
 import torch
 from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
+from .functions import multi_head_attention_forward as mha_mt
 
 UNARY_FNS = [
     torch.ops.aten.acos,
@@ -70,7 +71,11 @@ def masks_match(a, b):
                 " mask_b.stride(): ",
                 mask_b.stride(),
             )
-        return (mask_a.dim() == mask_b.dim()) and torch.equal(mask_a, mask_b)
+            print("mask_a:\n", mask_a)
+            print("mask_b:\n", mask_b)
+        print("torch.eq(mask_a, mask_b)")
+        print(torch.eq(mask_a, mask_b))
+        return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
 
 
@@ -243,6 +248,8 @@ class MaskedTensor(torch.Tensor):
                     " mask.stride(): ",
                     mask.stride(),
                 )
+        if func is torch.nn.functional.multi_head_attention_forward:
+            return mha_mt(*args, **kwargs)
         # Must check, for torch function at least, catch both method and module
         # level function.
         if func in [torch.Tensor.sum, torch.sum] and len(args) == 1:
@@ -513,26 +520,28 @@ class MaskedTensor(torch.Tensor):
             return MaskedTensor(res_data, get_mask(args[0]))
         if func is torch.ops.aten._softmax_backward_data:
             assert len(args) == 4
-            grad_output = args[0]
+            grad = args[0]
             output = args[1]
             dim = args[2]
-            self = args[3]
-            if is_masked_tensor(grad_output) and is_masked_tensor(self):
-                if VERBOSE:
-                    print("get_mask(self): ", get_mask(self))
-                    print("get_mask(grad_output): ", get_mask(grad_output))
-                assert masks_match(self, grad_output)
-                grad_data = torch.ops.aten._softmax_backward_data(
-                    get_data(grad_output), get_data(output), dim, get_data(self)
+            input_dtype = args[3]
+            if is_masked_tensor(grad) and is_masked_tensor(output):
+                print("sft2 grad:", grad)
+                print("sft2 output:", output)
+                # print("sft2 grad.mask():", grad.mask())
+                # print("sft2 output.mask():", output.mask())
+                # print("masks_match(grad, output): ", masks_match(grad, output))
+                assert masks_match(grad, output)
+                grad_data = get_data(grad).masked_fill(~get_mask(grad), 1)
+                output_data = get_data(output).masked_fill(~get_mask(output), 0)
+                # print("grad_data: ", grad_data)
+                # print("output_data: ", output_data)
+                new_grad_data = torch.ops.aten._softmax_backward_data(
+                    grad_data, output_data, dim, input_dtype
                 )
-                return MaskedTensor(grad_data, get_mask(self))
-            if is_masked_tensor(grad_output):
-                grad_data = torch.ops.aten._softmax_backward_data(
-                    get_data(grad_output), get_data(output), dim, self
-                )
-                if VERBOSE:
-                    print("grad_data: ", grad_data)
-                return MaskedTensor(grad_data, torch.ones_like(grad_data).bool())
+                # print("new_grad_data: ", new_grad_data)
+                res = MaskedTensor(new_grad_data, get_mask(grad))
+                # print("res:\n", res)
+                return res
         if func is torch.ops.aten.copy_:
             assert len(args) == 2
             assert masks_match(get_mask(args[0]), get_mask(args[1]))
