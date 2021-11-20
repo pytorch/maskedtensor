@@ -72,8 +72,8 @@ def masks_match(a, b):
             )
             print("mask_a:\n", mask_a)
             print("mask_b:\n", mask_b)
-        print("torch.eq(mask_a, mask_b)")
-        print(torch.eq(mask_a, mask_b))
+            print("torch.eq(mask_a, mask_b)")
+            print(torch.eq(mask_a, mask_b))
         return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
 
@@ -365,32 +365,16 @@ class MaskedTensor(torch.Tensor):
             input_mask0 = get_mask(input0)
             input_data0 = data0.masked_fill(~input_mask0, 0)
             result_data = func(input_data0, input1)
-            # print("input1")
-            # print(input1)
-            # print("input_mask0")
-            # print(input_mask0)
-            # print("torch.ones_like(input1)")
-            # print(torch.ones_like(input1))
             result_mask = func(input_mask0.float(), torch.ones_like(input1).float())
             result_mask = result_mask > 0
-            # print("result_mask")
-            # print(result_mask)
             return MaskedTensor(result_data, result_mask)
         if not is_masked_tensor(input0) and is_masked_tensor(input1):
             data1 = get_data(input1)
             input_mask1 = get_mask(input1)
             input_data1 = data1.masked_fill(~input_mask1, 0)
             result_data = func(input0, input_data1)
-            # print("input1")
-            # print(input1)
-            # print("input_mask0")
-            # print(input_mask0)
-            # print("torch.ones_like(input1)")
-            # print(torch.ones_like(input1))
             result_mask = func(torch.ones_like(input0).float(), input_mask1.float())
             result_mask = result_mask > 0
-            # print("result_mask")
-            # print(result_mask)
             return MaskedTensor(result_data, result_mask)
 
         assert False, "can't do it"
@@ -404,7 +388,6 @@ class MaskedTensor(torch.Tensor):
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:
             len(args) == 2
             len(kwargs) == 0
-            print("func: ", func)
             return cls.matmul(args[0], args[1], func)
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
@@ -562,8 +545,6 @@ class MaskedTensor(torch.Tensor):
             dim = args[2]
             input_dtype = args[3]
             if is_masked_tensor(grad) and is_masked_tensor(output):
-                print("grad: ", grad)
-                print("output: ", output)
                 assert masks_match(grad, output)
                 grad_data = get_data(grad).masked_fill(~get_mask(grad), 1)
                 output_data = get_data(output).masked_fill(~get_mask(output), 0)
