@@ -1,5 +1,5 @@
 import torch
-from .maskedtensor import MaskedTensor
+from .core import MaskedTensor
 from .functions import multi_head_attention_forward
 from typing import Optional, Tuple
 

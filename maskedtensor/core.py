@@ -1,7 +1,6 @@
 import torch
 from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
-from .functions import multi_head_attention_forward as mha_mt
 
 UNARY_FNS = [
     torch.ops.aten.acos,
@@ -183,6 +182,14 @@ class MaskedTensor(torch.Tensor):
         assert type(data) == type(mask)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
+        assert (data.dtype == torch.float16 or
+                data.dtype == torch.float32 or
+                data.dtype == torch.float64 or
+                data.dtype == torch.bool or
+                data.dtype == torch.int8 or
+                data.dtype == torch.int16 or
+                data.dtype == torch.int32 or
+                data.dtype == torch.int64)
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
         mask = mask.contiguous()
@@ -249,10 +256,11 @@ class MaskedTensor(torch.Tensor):
                     mask.stride(),
                 )
         if func is torch.nn.functional.multi_head_attention_forward:
+            from .functions import multi_head_attention_forward as mha_mt
             return mha_mt(*args, **kwargs)
         # Must check, for torch function at least, catch both method and module
         # level function.
-        if func in [torch.Tensor.sum, torch.sum] and len(args) == 1:
+        if func in [torch.Tensor.sum, torch.sum] and len(args) == 1 and len(kwargs) == 0:
             return MaskedSum.apply(args[0])
         if func in [torch.Tensor.where, torch.where]:
             assert len(args) == 3
@@ -349,20 +357,46 @@ class MaskedTensor(torch.Tensor):
             if func is torch.ops.aten.mm:
                 if VERBOSE:
                     print("input_mask1.transpose(0, 1): ", input_mask1.transpose(0, 1))
-                # assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
+                assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
             if func is torch.ops.aten.bmm:
                 if VERBOSE:
                     print("input_mask1.transpose(1, 2): ", input_mask1.transpose(1, 2))
-                # assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
+                assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
             return MaskedTensor(result_data, result_mask)
-        if is_masked_tensor(input0):
-            return cls.matmul(
-                input0, MaskedTensor(input1, torch.ones_like(input1).bool()), func
-            )
-        if is_masked_tensor(input1):
-            return cls.matmul(
-                MaskedTensor(input0, torch.ones_like(input0).bool()), input1, func
-            )
+        if is_masked_tensor(input0) and not is_masked_tensor(input1):
+            data0 = get_data(input0)
+            input_mask0 = get_mask(input0)
+            input_data0 = data0.masked_fill(~input_mask0, 0)
+            result_data = func(input_data0, input1)
+            # print("input1")
+            # print(input1)
+            # print("input_mask0")
+            # print(input_mask0)
+            # print("torch.ones_like(input1)")
+            # print(torch.ones_like(input1))
+            result_mask = func(input_mask0.float(), torch.ones_like(input1).float())
+            result_mask = result_mask > 0
+            # print("result_mask")
+            # print(result_mask)
+            return MaskedTensor(result_data, result_mask)
+        if not is_masked_tensor(input0) and is_masked_tensor(input1):
+            data1 = get_data(input1)
+            input_mask1 = get_mask(input1)
+            input_data1 = data1.masked_fill(~input_mask1, 0)
+            result_data = func(input0, input_data1)
+            # print("input1")
+            # print(input1)
+            # print("input_mask0")
+            # print(input_mask0)
+            # print("torch.ones_like(input1)")
+            # print(torch.ones_like(input1))
+            result_mask = func(torch.ones_like(input0).float(), input_mask1.float())
+            result_mask = result_mask > 0
+            # print("result_mask")
+            # print(result_mask)
+            return MaskedTensor(result_data, result_mask)
+
+        assert False, "can't do it"
         return NotImplemented
 
     @classmethod
@@ -373,6 +407,7 @@ class MaskedTensor(torch.Tensor):
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:
             len(args) == 2
             len(kwargs) == 0
+            print("func: ", func)
             return cls.matmul(args[0], args[1], func)
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
@@ -399,6 +434,11 @@ class MaskedTensor(torch.Tensor):
                 " mask.stride(): ",
                 mask.stride(),
             )
+        if func is torch.ops.aten.new_empty_strided:
+            assert len(args) == 3
+            assert tuple(args[1]) == tuple(data.size())
+            assert tuple(args[2]) == tuple(data.stride())
+            return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
         if func in UNARY_FNS:
             assert is_masked_tensor(args[0])
             if len(kwargs) == 0 and len(args) == 1:
@@ -525,22 +565,15 @@ class MaskedTensor(torch.Tensor):
             dim = args[2]
             input_dtype = args[3]
             if is_masked_tensor(grad) and is_masked_tensor(output):
-                print("sft2 grad:", grad)
-                print("sft2 output:", output)
-                # print("sft2 grad.mask():", grad.mask())
-                # print("sft2 output.mask():", output.mask())
-                # print("masks_match(grad, output): ", masks_match(grad, output))
+                print("grad: ", grad)
+                print("output: ", output)
                 assert masks_match(grad, output)
                 grad_data = get_data(grad).masked_fill(~get_mask(grad), 1)
                 output_data = get_data(output).masked_fill(~get_mask(output), 0)
-                # print("grad_data: ", grad_data)
-                # print("output_data: ", output_data)
                 new_grad_data = torch.ops.aten._softmax_backward_data(
                     grad_data, output_data, dim, input_dtype
                 )
-                # print("new_grad_data: ", new_grad_data)
                 res = MaskedTensor(new_grad_data, get_mask(grad))
-                # print("res:\n", res)
                 return res
         if func is torch.ops.aten.copy_:
             assert len(args) == 2
