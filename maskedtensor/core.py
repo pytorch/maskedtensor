@@ -11,6 +11,8 @@ UNARY_FNS = [
     torch.ops.aten.pow,
     torch.ops.aten.sin,
     torch.ops.aten.clamp,
+    torch.ops.aten.isnan,
+    torch.ops.aten.abs,
 ]
 BINARY_FNS = [
     torch.ops.aten.add,
@@ -19,6 +21,10 @@ BINARY_FNS = [
     torch.ops.aten.mul,
     torch.ops.aten.add_,
     torch.ops.aten.le,
+    torch.ops.aten.ne,
+    torch.ops.aten.eq,
+    torch.ops.aten.bitwise_and_,
+    torch.ops.aten.bitwise_or_,
 ]
 REDUCE_FNS = [
     torch.ops.aten.sum,
@@ -26,6 +32,7 @@ REDUCE_FNS = [
     torch.ops.aten.amin,
     torch.ops.aten.amax,
     torch.ops.aten.prod,
+    torch.ops.aten.all,
 ]
 
 VERBOSE = False
@@ -326,6 +333,8 @@ class MaskedTensor(torch.Tensor):
         if fn is torch.ops.aten.amax:
             min_value = data.min()
             return fn(data.masked_fill(~mask, min_value))
+        if fn is torch.ops.aten.all:
+            return fn(data.masked_fill(~mask, True))
         return NotImplemented
 
     @classmethod
@@ -414,6 +423,11 @@ class MaskedTensor(torch.Tensor):
                 " mask.stride(): ",
                 mask.stride(),
             )
+        if func is torch.ops.aten._local_scalar_dense:
+            assert mask
+            return func(data)
+        if func is torch.ops.aten._to_copy:
+            return MaskedTensor(func(data, *args[1:]), mask)
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
