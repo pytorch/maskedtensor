@@ -255,9 +255,6 @@ class MaskedTensor(torch.Tensor):
                     " mask.stride(): ",
                     mask.stride(),
                 )
-        if func is torch.nn.functional.multi_head_attention_forward:
-            from .functions import multi_head_attention_forward as mha_mt
-            return mha_mt(*args, **kwargs)
         # Must check, for torch function at least, catch both method and module
         # level function.
         if func in [torch.Tensor.sum, torch.sum] and len(args) == 1 and len(kwargs) == 0:
