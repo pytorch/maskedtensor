@@ -3,10 +3,6 @@ from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 from maskedtensor import MaskedTensor
 
-# TODO:
-# autograd.Function doesn't support kwarg?
-# Add masked_all to torch._masked?
-
 
 def masked_all_all(data, mask=None):
     if mask is None:
@@ -20,6 +16,7 @@ def masked_all_dim(data, dim, keepdim=False, mask=None):
     return torch.all(data.masked_fill(~mask, True), dim=dim, keepdim=keepdim)
 
 
+# TODO: Add masked_all to torch._masked?
 def masked_all(*args, **kwargs):
     if len(args) == 1 and len(kwargs) == 1:
         return masked_all_all(args[0], mask=kwargs["mask"])
@@ -86,7 +83,6 @@ def torch_grad_reduce_all(fn):
     return MaskedReduceAll.apply
 
 
-# TODO: ASK: autograd.Function supports no kwargs?
 def torch_grad_reduce_dim(fn):
     class MaskedReduceDim(torch.autograd.Function):
         @staticmethod
@@ -113,6 +109,7 @@ def torch_grad_reduce(fn):
     def grad_reduce(*args, **kwargs):
         if len(args) == 1 and len(kwargs) == 0:
             return torch_grad_reduce_all(fn)(args[0])
+        # TODO: autograd.Function doesn't support kwarg
         input, dim, keepdim, dtype = reduce_dim_args(*args, **kwargs)
         return torch_grad_reduce_dim(fn)(input, dim, keepdim, dtype)
 
