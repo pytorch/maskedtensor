@@ -5,6 +5,12 @@ from torch.testing._internal.common_utils import TestCase
 
 
 class TestMaskedTensorReductions(TestCase):
+    def test_not_implemented(self):
+        d = torch.tensor([[0, 1, 2], [3, 4, 5.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m)
+        self.assertRaises(TypeError, lambda: mt.max())
+
     def test_sum(self):
         d = torch.tensor([[0, 1, 2], [3, 4, 5.]])
         m = torch.tensor([[True, False, False], [False, True, False]])
@@ -39,6 +45,42 @@ class TestMaskedTensorReductions(TestCase):
         m = torch.tensor([[True, False, False], [False, True, False]])
         mt = masked_tensor(d, m, requires_grad=True)
         mt.mean().backward()
+        self.assertEqual(mt.grad, masked_tensor(torch.tensor(1.).expand_as(m), m))
+
+    def test_amax(self):
+        d = torch.tensor([[0, 1, 3], [3, -4, 1.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m)
+        self.assertEqual(masked_tensor(torch.tensor(0.),
+                                       torch.tensor(True)),
+                         mt.amax())
+        self.assertEqual(masked_tensor(torch.tensor([0., -4., 1.]),
+                                       torch.tensor([True, True, False])),
+                         mt.amax(dim=0))
+
+    def test_amax_grad(self):
+        d = torch.tensor([[0, 1, 2], [3, 4, 5.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m, requires_grad=True)
+        mt.amax().backward()
+        self.assertEqual(mt.grad, masked_tensor(torch.tensor(1.).expand_as(m), m))
+
+    def test_amin(self):
+        d = torch.tensor([[0, 1, 3], [3, -4, 1.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m)
+        self.assertEqual(masked_tensor(torch.tensor(-4.),
+                                       torch.tensor(True)),
+                         mt.amin())
+        self.assertEqual(masked_tensor(torch.tensor([0., -4., 1.]),
+                                       torch.tensor([True, True, False])),
+                         mt.amin(dim=0))
+
+    def test_amin_grad(self):
+        d = torch.tensor([[0, 1, 2], [3, 4, 5.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m, requires_grad=True)
+        mt.amin().backward()
         self.assertEqual(mt.grad, masked_tensor(torch.tensor(1.).expand_as(m), m))
 
     def test_prod(self):
