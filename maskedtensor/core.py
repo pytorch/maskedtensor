@@ -77,10 +77,6 @@ def masks_match(a, b):
                 " mask_b.stride(): ",
                 mask_b.stride(),
             )
-            print("mask_a:\n", mask_a)
-            print("mask_b:\n", mask_b)
-            print("torch.eq(mask_a, mask_b)")
-            print(torch.eq(mask_a, mask_b))
         return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
 
@@ -189,14 +185,16 @@ class MaskedTensor(torch.Tensor):
         assert type(data) == type(mask)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
-        assert (data.dtype == torch.float16 or
-                data.dtype == torch.float32 or
-                data.dtype == torch.float64 or
-                data.dtype == torch.bool or
-                data.dtype == torch.int8 or
-                data.dtype == torch.int16 or
-                data.dtype == torch.int32 or
-                data.dtype == torch.int64)
+        assert (
+            data.dtype == torch.float16
+            or data.dtype == torch.float32
+            or data.dtype == torch.float64
+            or data.dtype == torch.bool
+            or data.dtype == torch.int8
+            or data.dtype == torch.int16
+            or data.dtype == torch.int32
+            or data.dtype == torch.int64
+        )
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
         mask = mask.contiguous()
@@ -264,7 +262,11 @@ class MaskedTensor(torch.Tensor):
                 )
         # Must check, for torch function at least, catch both method and module
         # level function.
-        if func in [torch.Tensor.sum, torch.sum] and len(args) == 1 and len(kwargs) == 0:
+        if (
+            func in [torch.Tensor.sum, torch.sum]
+            and len(args) == 1
+            and len(kwargs) == 0
+        ):
             return MaskedSum.apply(args[0])
         if func in [torch.Tensor.where, torch.where]:
             assert len(args) == 3

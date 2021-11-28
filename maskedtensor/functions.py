@@ -8,6 +8,7 @@ class MaskedBmm(torch.autograd.Function):
     @staticmethod
     def forward(ctx, q, k, attn_mask):
         from maskedtensor import is_masked_tensor
+
         assert not is_masked_tensor(q)
         assert is_masked_tensor(k)
         k_mask = k.mask()

@@ -86,7 +86,6 @@ class TestMaskedTensor(TestCase):
             ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x)),
             requires_grad=True
         )
-        print("x_mt: ", x_mt)
         attn_mask_bool = torch.as_tensor(
             [
                 [False, True, True],
@@ -96,20 +95,12 @@ class TestMaskedTensor(TestCase):
         )
         attn_mask = attn_mask_bool.float().masked_fill_(attn_mask_bool, float('-inf'))
         v = maskedtensor.masked_bmm(x, x_mt.transpose(1, 2), attn_mask)
-        print("maskd v", v)
         v.sum().backward()
-        print("maskd x.grad", x.grad)
-        print("maskd x_mt.grad", x_mt.grad)
-        print("-=-=-=-=-=-=-")
         x = torch.arange(4 * 3 * 2).reshape(4, 3, 2).float().requires_grad_()
         x0 = torch.arange(4 * 3 * 2).reshape(4, 3, 2).float().requires_grad_()
         y = torch.bmm(x, x0.transpose(-2, -1))
         y = y * (~attn_mask_bool).float()
-
         y.sum().backward()
-        print("dense ", y.int())
-        print("dense x.grad", x.grad)
-        print("dense x0.grad", x0.grad)
 
 
     def test_linear(self):
