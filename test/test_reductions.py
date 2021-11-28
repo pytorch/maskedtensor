@@ -41,6 +41,24 @@ class TestMaskedTensorReductions(TestCase):
         mt.mean().backward()
         self.assertEqual(mt.grad, masked_tensor(torch.tensor(1.).expand_as(m), m))
 
+    def test_prod(self):
+        d = torch.tensor([[0, 1, 3], [float('nan'), 4, 1.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m)
+        self.assertEqual(masked_tensor(torch.tensor(0.),
+                                       torch.tensor(True)),
+                         mt.prod())
+        self.assertEqual(masked_tensor(torch.tensor([0., 4., 1.]),
+                                       torch.tensor([True, True, False])),
+                         mt.prod(dim=0))
+
+    def test_prod_grad(self):
+        d = torch.tensor([[0, float('nan'), 2], [3, 4, 5.]])
+        m = torch.tensor([[True, False, False], [False, True, False]])
+        mt = masked_tensor(d, m, requires_grad=True)
+        mt.prod().backward()
+        self.assertEqual(mt.grad, masked_tensor(torch.tensor(1.).expand_as(m), m))
+
     def test_all(self):
         d = torch.tensor([[True, True, False], [False, True, True]])
         m = torch.tensor([[True, False, False], [False, True, False]])
