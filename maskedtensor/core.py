@@ -183,7 +183,12 @@ class MaskedTensor(torch.Tensor):
     def __repr__(self):
         formatter = "{0:8.4f}"
         if self.dim() == 0:
-            data_formatted = formatter.format(get_data(self).item())
+            scalar_data = get_data(self).item()
+            data_formatted = (
+                formatter.format(scalar_data)
+                if isinstance(scalar_data, float)
+                else str(scalar_data)
+            )
             if not get_mask(self).item():
                 data_formatted = "--"
             return (

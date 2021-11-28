@@ -48,10 +48,13 @@ def torch_reduce_dim(fn):
         data = self.masked_data
         mask = self.masked_mask
         masked_fn = get_masked_fn(fn)
-        return MaskedTensor(
-            masked_fn(data, dim=dim, keepdim=keepdim, dtype=dtype, mask=mask),
-            torch.any(mask, dim=dim, keepdim=keepdim),
-        )
+        if fn == "all":
+            result_data = masked_fn(data, dim=dim, keepdim=keepdim, mask=mask)
+        else:
+            result_data = masked_fn(
+                data, dim=dim, keepdim=keepdim, dtype=dtype, mask=mask
+            )
+        return MaskedTensor(result_data, torch.any(mask, dim=dim, keepdim=keepdim),)
 
     return reduce_dim
 
