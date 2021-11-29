@@ -13,17 +13,6 @@ class TestMaskedTensor(TestCase):
         m1 = maskedtensor.masked_tensor(data, ~mask)
         self.assertRaises(ValueError, lambda: m0 + m1)
 
-    def test_sum(self):
-        d = torch.tensor([[0, 1, 2], [3, 4, 5.]])
-        m = torch.tensor([[True, False, False], [False, True, False]])
-        mt = masked_tensor(d, m)
-        self.assertEqual(masked_tensor(torch.tensor(4.),
-                                       torch.tensor(True)),
-                         mt.sum())
-        self.assertEqual(masked_tensor(torch.tensor([0., 4., 1.]),
-                                       torch.tensor([True, True, False])),
-                         mt.sum(dim=0))
-
     def test_softmax(self):
         x = torch.randn(3, 4) * 0.1
         m = torch.tensor(

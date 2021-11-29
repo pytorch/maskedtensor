@@ -26,15 +26,6 @@ BINARY_FNS = [
     torch.ops.aten.bitwise_and_,
     torch.ops.aten.bitwise_or_,
 ]
-REDUCE_FNS = [
-    torch.ops.aten.sum,
-    torch.ops.aten.mean,
-    torch.ops.aten.amin,
-    torch.ops.aten.amax,
-    torch.ops.aten.prod,
-    torch.ops.aten.all,
-]
-
 VERBOSE = False
 
 
@@ -103,28 +94,6 @@ def masked_tensor_str(data, mask, formatter):
     sub_strings = [masked_tensor_str(d, m, formatter) for (d, m) in zip(data, mask)]
     sub_strings = ["\n".join(["  " + si for si in s.split("\n")]) for s in sub_strings]
     return "[\n" + ",\n".join(sub_strings) + "\n]"
-
-
-class MaskedSum(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, input):
-        if VERBOSE:
-            print("Calling MaskedSum.forward")
-        mask = get_mask(input)
-        ctx.mark_non_differentiable(mask)
-        ctx.save_for_backward(mask)
-        data = get_data(input)
-        data = data.masked_fill(~mask, 0)
-        return MaskedTensor(data.sum(), torch.any(mask))
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        if VERBOSE:
-            print("Calling MaskedSum.backward")
-        (mask,) = ctx.saved_tensors
-        new_data = get_data(grad_output).expand_as(mask)
-        new_data = new_data.contiguous()
-        return MaskedTensor(new_data, mask)
 
 
 class MaskedContigous(torch.autograd.Function):
@@ -214,7 +183,12 @@ class MaskedTensor(torch.Tensor):
     def __repr__(self):
         formatter = "{0:8.4f}"
         if self.dim() == 0:
-            data_formatted = formatter.format(get_data(self).item())
+            scalar_data = get_data(self).item()
+            data_formatted = (
+                formatter.format(scalar_data)
+                if isinstance(scalar_data, float)
+                else str(scalar_data)
+            )
             if not get_mask(self).item():
                 data_formatted = "--"
             return (
@@ -260,14 +234,11 @@ class MaskedTensor(torch.Tensor):
                     " mask.stride(): ",
                     mask.stride(),
                 )
-        # Must check, for torch function at least, catch both method and module
-        # level function.
-        if (
-            func in [torch.Tensor.sum, torch.sum]
-            and len(args) == 1
-            and len(kwargs) == 0
-        ):
-            return MaskedSum.apply(args[0])
+        from maskedtensor import is_reduction
+        from maskedtensor import apply_reduction
+
+        if is_reduction(func):
+            return apply_reduction(func, *args, **kwargs)
         if func in [torch.Tensor.where, torch.where]:
             assert len(args) == 3
             assert len(kwargs) == 0
@@ -295,49 +266,6 @@ class MaskedTensor(torch.Tensor):
             raise ValueError("If both inputs are MaskedTensors their masks must match.")
         result_mask = get_at_least_one_mask(args0, args1)
         return MaskedTensor(fn(get_data(args0), get_data(args1)), result_mask)
-
-    @classmethod
-    def reduce(cls, fn, data, mask, dim, new_mask, keepdim):
-        if fn is torch.ops.aten.sum:
-            return MaskedTensor(fn(data.masked_fill(~mask, 0), dim, keepdim), new_mask)
-        if fn is torch.ops.aten.mean:
-            return MaskedTensor(
-                torch.sum(data.masked_fill(~mask, 0), dim, keepdim)
-                / torch.count_nonzero(mask, dim),
-                new_mask,
-            )
-        if fn is torch.ops.aten.prod:
-            return MaskedTensor(fn(data.masked_fill(~mask, 1), dim, keepdim), new_mask)
-        if fn is torch.ops.aten.amin:
-            max_value = data.max()
-            return MaskedTensor(
-                fn(data.masked_fill(~mask, max_value), dim, keepdim), new_mask
-            )
-        if fn is torch.ops.aten.amax:
-            min_value = data.min()
-            return MaskedTensor(
-                fn(data.masked_fill(~mask, min_value), dim, keepdim), new_mask
-            )
-        return NotImplemented
-
-    @classmethod
-    def reduce_all(cls, data, mask, fn):
-        if fn is torch.ops.aten.sum:
-            # Masked fill is necessary because inf * 0 is NaN
-            return fn(data.masked_fill(~mask, 0))
-        if fn is torch.ops.aten.mean:
-            return torch.sum(data.masked_fill(~mask, 0)) / torch.count_nonzero(mask)
-        if fn is torch.ops.aten.prod:
-            return fn(data.masked_fill(~mask, 1))
-        if fn is torch.ops.aten.amin:
-            max_value = data.max()
-            return fn(data.masked_fill(~mask, max_value))
-        if fn is torch.ops.aten.amax:
-            min_value = data.min()
-            return fn(data.masked_fill(~mask, min_value))
-        if fn is torch.ops.aten.all:
-            return fn(data.masked_fill(~mask, True))
-        return NotImplemented
 
     @classmethod
     def matmul(cls, input0, input1, func):
@@ -393,6 +321,11 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
+        from maskedtensor import is_reduction
+        from maskedtensor import apply_reduction
+
+        if is_reduction(func):
+            return apply_reduction(func, *args, **kwargs)
         assert len(args) > 0
         if VERBOSE:
             print("----tp\nfunc: ", func, " args: ", args, " kwargs: ", kwargs)
@@ -451,34 +384,6 @@ class MaskedTensor(torch.Tensor):
             assert len(kwargs) == 0
             assert len(args) == 2
             return cls.binary(func, args[0], args[1])
-        if func in REDUCE_FNS:
-            assert is_masked_tensor(args[0])
-            if len(args) == 2 or len(args) == 3:
-                args_1 = args[1]
-                keepdim = False
-                if len(args) == 3:
-                    keepdim = args[2]
-                new_mask = get_mask(args[0])
-                dim_args = args[1]
-                if not isinstance(args[1], list):
-                    dim_args = [args[1]]
-                # Any doesn't support lists of dims
-                for d in sorted(dim_args)[::-1]:
-                    new_mask = torch.any(new_mask, d, keepdim)
-                dim_args = args[1]  # Prod doesn't support lists of dims
-                return cls.reduce(
-                    func,
-                    get_data(args[0]),
-                    get_mask(args[0]),
-                    dim_args,
-                    new_mask,
-                    keepdim,
-                )
-            assert len(args) == 1
-            if not torch.any(mask):
-                # TODO: This should probably match the dtype, device, etc. of the input MaskedTensor
-                return MaskedTensor(torch.tensor(0), torch.tensor(False))
-            return MaskedTensor(cls.reduce_all(data, mask, func), torch.tensor(True))
         if func in [torch.ops.aten.detach]:
             assert len(args) == 1
             assert len(kwargs) == 0
