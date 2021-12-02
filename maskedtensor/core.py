@@ -234,6 +234,10 @@ class MaskedTensor(torch.Tensor):
                     " mask.stride(): ",
                     mask.stride(),
                 )
+        if func is torch.nn.functional.multi_head_attention_forward:
+            from .functions import multi_head_attention_forward as mha_mt
+
+            return mha_mt(*args, **kwargs)
         from maskedtensor import is_reduction
         from maskedtensor import apply_reduction
 
@@ -365,6 +369,11 @@ class MaskedTensor(torch.Tensor):
                 " mask.stride(): ",
                 mask.stride(),
             )
+        if func is torch.ops.aten.new_empty_strided:
+            assert len(args) == 3
+            assert tuple(args[1]) == tuple(data.size())
+            assert tuple(args[2]) == tuple(data.stride())
+            return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
         if func is torch.ops.aten._local_scalar_dense:
             assert mask
             return func(data)
