@@ -5,3 +5,5 @@ from .creation import as_masked_tensor
 from .functions import masked_bmm
 from .reductions import is_reduction
 from .reductions import apply_reduction
+from .passthrough import is_pass_through_fn
+from .passthrough import apply_pass_through_fn
