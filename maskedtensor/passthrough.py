@@ -22,7 +22,7 @@ PASSTHROUGH_FNS = [
     torch.ops.aten.view,
     torch.ops.aten._unsafe_view,
     torch.ops.aten._reshape_alias,
-    torch.ops.aten.cat
+    torch.ops.aten.cat,
 ]
 
 # TODO: tree_map doesn't cut it due to kwargs support for torch_function
@@ -32,6 +32,7 @@ def _map_mt_args_kwargs(args, kwargs, map_fn):
     impl_args = []
     for a in args:
         from maskedtensor import is_masked_tensor
+
         if is_masked_tensor(a):
             impl_args.append(map_fn(a))
         elif torch.is_tensor(a):
@@ -49,6 +50,7 @@ def _map_mt_args_kwargs(args, kwargs, map_fn):
     }
     return impl_args, impl_kwargs
 
+
 def _wrap_result(result_data, result_mask):
     if isinstance(result_data, list):
         return list(_wrap_result(r, m) for (r, m) in zip(result_data, result_mask))
@@ -56,12 +58,15 @@ def _wrap_result(result_data, result_mask):
         return tuple(_wrap_result(r, m) for (r, m) in zip(result_data, result_mask))
     if torch.is_tensor(result_data):
         from maskedtensor import MaskedTensor
+
         return MaskedTensor(result_data, result_mask)
     # Expect result_data and result_mask to be Tensors only
     return NotImplemented
 
+
 def is_pass_through_fn(fn):
     return fn in PASSTHROUGH_FNS
+
 
 def apply_pass_through_fn(fn, *args, **kwargs):
     mask_args, mask_kwargs = _map_mt_args_kwargs(args, kwargs, lambda x: x.masked_mask)

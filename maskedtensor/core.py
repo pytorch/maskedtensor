@@ -72,8 +72,6 @@ def masks_match(a, b):
     return True
 
 
-
-
 def masked_tensor_str(data, mask, formatter):
     if data.dim() == 1:
         formatted_elements = [
