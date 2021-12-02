@@ -72,6 +72,8 @@ def masks_match(a, b):
     return True
 
 
+
+
 def masked_tensor_str(data, mask, formatter):
     if data.dim() == 1:
         formatted_elements = [
@@ -326,6 +328,13 @@ class MaskedTensor(torch.Tensor):
 
         if is_reduction(func):
             return apply_reduction(func, *args, **kwargs)
+
+        from maskedtensor import is_pass_through_fn
+        from maskedtensor import apply_pass_through_fn
+
+        if is_pass_through_fn(func):
+            return apply_pass_through_fn(func, *args, **kwargs)
+
         assert len(args) > 0
         if VERBOSE:
             print("----tp\nfunc: ", func, " args: ", args, " kwargs: ", kwargs)
@@ -400,53 +409,11 @@ class MaskedTensor(torch.Tensor):
             if VERBOSE:
                 print("softmax result_data: ", result_data)
             return MaskedTensor(result_data, get_mask(args[0]))
-        if func in [
-            torch.ops.aten.select,
-            torch.ops.aten.transpose,
-            torch.ops.aten.split,
-        ]:
-            assert len(args) == 3
-            assert len(kwargs) == 0
-            result_data = func(data, args[1], args[2])
-            result_mask = func(mask, args[1], args[2])
-            if VERBOSE:
-                print(func, "\n", "result_data: \n", result_data)
-                print(func, "\n", "result_mask: \n", result_mask)
-            # split returns multiple values
-            if isinstance(result_data, list):
-                return tuple(
-                    MaskedTensor(di, mi) for (di, mi) in zip(result_data, result_mask)
-                )
-            return MaskedTensor(result_data, result_mask)
-        if func is torch.ops.aten.t:
             assert len(args) == 1
             assert len(kwargs) == 0
             result_data = func(data)
             result_mask = func(mask)
             return MaskedTensor(result_data, result_mask)
-        if func in [
-            torch.ops.aten.slice,
-            torch.ops.aten.slice_backward,
-            torch.ops.aten.select_backward,
-        ]:
-            return MaskedTensor(func(data, *args[1:]), func(mask, *args[1:]))
-        if func in [
-            torch.ops.aten.index,
-            torch.ops.aten.expand,
-            torch.ops.aten.view,
-            torch.ops.aten._unsafe_view,
-        ]:
-            assert len(args) == 2
-            assert len(kwargs) == 0
-            if func is torch.ops.aten.index:
-                assert len(args[1]) == 1
-                assert torch.is_tensor(args[1][0])
-            if func is torch.ops.aten.view:
-                return MaskedTensor(
-                    torch.ops.aten.view(data, args[1]),
-                    torch.ops.aten.view(mask, args[1]),
-                )
-            return MaskedTensor(func(data, args[1]), func(mask, args[1]))
         if func in [torch.ops.aten.ones_like]:
             len(args) == 1
             res_data = func(get_data(args[0]), **kwargs)
@@ -479,13 +446,6 @@ class MaskedTensor(torch.Tensor):
             assert masks_match(get_mask(args[0]), get_mask(args[1]))
             func(data, get_data(args[1]))
             return args[0]
-        if func is torch.ops.aten._reshape_alias:
-            assert len(args) == 3
-            assert len(kwargs) == 0
-            # return MaskedTensor(func(get_data(args[0]), args[1], args[2]), func(get_mask(args[0]), args[1], args[2]))
-            return MaskedTensor(
-                get_data(args[0]).reshape(args[1]), get_mask(args[0]).reshape(args[1])
-            )
         if func in [torch.ops.aten._s_where]:
             assert len(kwargs) == 0
             assert len(args) == 3
@@ -501,17 +461,6 @@ class MaskedTensor(torch.Tensor):
             new_data = func(args[0], get_data(mx), get_data(my))
             new_mask = func(args[0], get_mask(mx), get_mask(my))
             return MaskedTensor(new_data, new_mask)
-        if func in [torch.ops.aten.cat]:
-            assert len(args) == 1
-            if VERBOSE:
-                print("args[0]: ", args[0])
-            # assert all(map(is_masked_tensor, args[0]))
-            all_data = [get_data(x) for x in args[0]]
-            all_mask = [get_mask(x) for x in args[0]]
-            new_data = torch.cat(all_data)
-            new_mask = torch.cat(all_mask)
-            res = MaskedTensor(new_data, new_mask)
-            return res
         return NotImplemented
 
     def __lt__(self, other):
