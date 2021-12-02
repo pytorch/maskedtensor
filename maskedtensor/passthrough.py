@@ -38,10 +38,10 @@ def _map_mt_args_kwargs(args, kwargs, map_fn):
         elif torch.is_tensor(a):
             impl_args.append(a)
         elif isinstance(a, list):
-            a_impl, _ = _map_mt_args_kwargs(a, {})
+            a_impl, _ = _map_mt_args_kwargs(a, {}, map_fn)
             impl_args.append(a_impl)
         elif isinstance(a, tuple):
-            a_impl, _ = _map_mt_args_kwargs(a, {})
+            a_impl, _ = _map_mt_args_kwargs(a, {}, map_fn)
             impl_args.append(tuple(a_impl))
         else:
             impl_args.append(a)

@@ -1,5 +1,7 @@
 import torch
+import math
 from .creation import masked_tensor
+from torch.nn.functional import linear
 
 Tensor = torch.Tensor
 
@@ -37,9 +39,7 @@ def masked_bmm(q, k, attn_mask):
     return MaskedBmm.apply(q, k, attn_mask)
 
 
-def _in_projection_packed(
-    q: Tensor, k: Tensor, v: Tensor, w: Tensor, b: Optional[Tensor] = None,
-) -> List[Tensor]:
+def _in_projection_packed(q, k, v, w, b):
     # if is_masked_tensor(k):
     #     assert not is_masked_tensor(q)
     #     assert not is_masked_tensor(v)
@@ -54,13 +54,7 @@ def _in_projection_packed(
     return linear(q, w_q, b_q), linear(k, w_k, b_k), linear(v, w_v, b_v)
 
 
-def _scaled_dot_product_attention(
-    q: Tensor,
-    k: Tensor,
-    v: Tensor,
-    attn_mask: Optional[Tensor] = None,
-    dropout_p: float = 0.0,
-) -> Tuple[Tensor, Tensor]:
+def _scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=0.0):
     B, Nt, E = q.shape
     q = q / math.sqrt(E)
     # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
@@ -75,30 +69,30 @@ def _scaled_dot_product_attention(
 
 
 def multi_head_attention_forward(
-    query: Tensor,
-    key: Tensor,
-    value: Tensor,
-    embed_dim_to_check: int,
-    num_heads: int,
-    in_proj_weight: Tensor,
-    in_proj_bias: Optional[Tensor],
-    bias_k: Optional[Tensor],
-    bias_v: Optional[Tensor],
-    add_zero_attn: bool,
-    dropout_p: float,
-    out_proj_weight: Tensor,
-    out_proj_bias: Optional[Tensor],
-    training: bool = True,
-    key_padding_mask: Optional[Tensor] = None,
-    need_weights: bool = True,
-    attn_mask: Optional[Tensor] = None,
-    use_separate_proj_weight: bool = False,
-    q_proj_weight: Optional[Tensor] = None,
-    k_proj_weight: Optional[Tensor] = None,
-    v_proj_weight: Optional[Tensor] = None,
-    static_k: Optional[Tensor] = None,
-    static_v: Optional[Tensor] = None,
-) -> Tuple[Tensor, Optional[Tensor]]:
+    query,
+    key,
+    value,
+    embed_dim_to_check,
+    num_heads,
+    in_proj_weight,
+    in_proj_bias,
+    bias_k,
+    bias_v,
+    add_zero_attn,
+    dropout_p,
+    out_proj_weight,
+    out_proj_bias,
+    training,
+    key_padding_mask,
+    need_weights,
+    attn_mask,
+    use_separate_proj_weight,
+    q_proj_weight,
+    k_proj_weight,
+    v_proj_weight,
+    static_k,
+    static_v,
+):
     # set up shape vars
     tgt_len, bsz, embed_dim = query.shape
     src_len, _, _ = key.shape
