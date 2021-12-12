@@ -2,10 +2,11 @@
 
 ## Installation
 
-For now the repository is written in Python only. You can simply install it via
 ```
-pip install git+https://github.com/cpuhrsch/maskedtensor
+pip install maskedtensor
 ```
+
+You need to run a recent nightly of PyTorch. You can get it on [the main website](https://pytorch.org/get-started/locally/).
 
 ## Notebooks
 
