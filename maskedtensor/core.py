@@ -1,6 +1,9 @@
 import torch
 from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
+import os
+import logging
+logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
 BINARY_FNS = [
     torch.ops.aten.add,
@@ -14,8 +17,6 @@ BINARY_FNS = [
     torch.ops.aten.bitwise_and_,
     torch.ops.aten.bitwise_or_,
 ]
-VERBOSE = False
-
 
 def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
@@ -45,17 +46,16 @@ def masks_match(a, b):
     if is_masked_tensor(a) and is_masked_tensor(b):
         mask_a = get_mask(a)
         mask_b = get_mask(b)
-        if VERBOSE:
-            print(
-                " mask_a.size(): ",
-                mask_a.size(),
-                " mask_b.size(): ",
-                mask_b.size(),
-                " mask_a.stride(): ",
-                mask_a.stride(),
-                " mask_b.stride(): ",
-                mask_b.stride(),
-            )
+        # logger.debug(
+        #         " mask_a.size(): ",
+        #         mask_a.size(),
+        #         " mask_b.size(): ",
+        #         mask_b.size(),
+        #         " mask_a.stride(): ",
+        #         mask_a.stride(),
+        #         " mask_b.stride(): ",
+        #         mask_b.stride(),
+        #     )
         return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
 
@@ -103,16 +103,15 @@ class MaskedContigous(torch.autograd.Function):
 class MaskedWhere(torch.autograd.Function):
     @staticmethod
     def forward(ctx, cond, self, other):
-        if VERBOSE:
-            print("Calling MaskedWhere.forward")
+        # logger.debug(
+        #     "Calling MaskedWhere.forward")
         ctx.mark_non_differentiable(cond)
         ctx.save_for_backward(cond)
         return torch.ops.aten.where(cond, self, other)
 
     @staticmethod
     def backward(ctx, grad_output):
-        if VERBOSE:
-            print("Calling MaskedWhere.backward")
+        # logger.debug("Calling MaskedWhere.backward")
         (cond,) = ctx.saved_tensors
 
         def masked_out_like(mt):
@@ -157,18 +156,17 @@ class MaskedTensor(torch.Tensor):
         assert not mask.requires_grad
 
     def __init__(self, data, mask, requires_grad=False):
-        if VERBOSE:
-            print("----in\ntype(data): ", type(data), " type(mask): ", type(mask))
+        logging.debug(
+            f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
 
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
         mask = mask.contiguous()
-        if VERBOSE:
-            print("data.dim(): ", data.dim(), " mask.dim(): ", mask.dim())
-            print("data.size(): ", data.size(), " mask.size(): ", mask.size())
-            print("data.stride(): ", data.stride(), " mask.stride(): ", mask.stride())
-            print("data:\n", data)
-            print("mask:\n", mask)
+        logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
+        logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
+        logging.debug(f"data.stride(): {data.stride()} mask.stride(): {mask.stride()}")
+        logging.debug(f"data: {data}")
+        logging.debug(f"mask: {mask}")
         # Have to pick awkward names to not conflict with existing fields such as data
         self.masked_data = data
         self.masked_mask = mask
@@ -212,33 +210,6 @@ class MaskedTensor(torch.Tensor):
     def __torch_function__(cls, func, types, args=(), kwargs=None):
         if kwargs is None:
             kwargs = {}
-        if VERBOSE:
-            data = get_data(args[0])
-            mask = get_mask(args[0])
-            print(f"----tf\n__torch_function__ calling into {func}")
-            print("len(args): ", args if args is None else len(args))
-            print("len(kwargs): ", len(kwargs))
-            print(
-                " data.dtype: ",
-                data.dtype,
-                " data.device: ",
-                data.device,
-                " data.size(): ",
-                data.size(),
-                " data.stride(): ",
-                data.stride(),
-            )
-            if mask is not None:
-                print(
-                    " mask.dtype: ",
-                    mask.dtype,
-                    " mask.device: ",
-                    mask.device,
-                    " mask.size(): ",
-                    mask.size(),
-                    " mask.stride(): ",
-                    mask.stride(),
-                )
         if func is torch.nn.functional.multi_head_attention_forward:
             from .functions import multi_head_attention_forward as mha_mt
 
@@ -256,8 +227,7 @@ class MaskedTensor(torch.Tensor):
             return MaskedContigous.apply(args[0])
         if not all(issubclass(cls, t) for t in types):
             return NotImplemented
-        if VERBOSE:
-            print("tf redispatching to td")
+        logging.debug("tf redispatching to td")
         with torch._C.DisableTorchFunction():
             ret = func(*args, **kwargs)
             if func in get_default_nowrap_functions():
@@ -278,8 +248,7 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def matmul(cls, input0, input1, func):
-        if VERBOSE:
-            print("Calling matmul with type(input0): ", type(input0), type(input1))
+        logging.debug("Calling matmul with type({type(input0)}, {type(input1)})")
         if is_masked_tensor(input0) and is_masked_tensor(input1):
             data0 = get_data(input0)
             data1 = get_data(input1)
@@ -289,23 +258,17 @@ class MaskedTensor(torch.Tensor):
             input_data1 = data1.masked_fill(~input_mask1, 0)
             result_data = func(input_data0, input_data1)
             result_mask = func(input_mask0.float(), input_mask1.float())
-            if VERBOSE:
-                print("bmm input_data1: ", input_data1)
-                print("bmm input_mask1: ", input_mask1)
-                print("bmm input_data0: ", input_data0)
-                print("bmm input_mask0: ", input_mask0)
-                print("bmm result_data: ", result_data)
-                print("bmm result_mask0: ", result_mask)
+            logging.debug("bmm input_data1:  {input_data1}")
+            logging.debug("bmm input_mask1:  {input_mask1}")
+            logging.debug("bmm input_data0:  {input_data0}")
+            logging.debug("bmm input_mask0:  {input_mask0}")
+            logging.debug("bmm result_data:  {result_data}")
+            logging.debug("bmm result_mask0: {result_mask}")
             result_mask = result_mask > 0
-            if VERBOSE:
-                print("bmm result_mask1: ", result_mask)
+            logging.debug("bmm result_mask1: {result_mask}")
             if func is torch.ops.aten.mm:
-                if VERBOSE:
-                    print("input_mask1.transpose(0, 1): ", input_mask1.transpose(0, 1))
                 assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
             if func is torch.ops.aten.bmm:
-                if VERBOSE:
-                    print("input_mask1.transpose(1, 2): ", input_mask1.transpose(1, 2))
                 assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
             return MaskedTensor(result_data, result_mask)
         if is_masked_tensor(input0) and not is_masked_tensor(input1):
@@ -325,7 +288,6 @@ class MaskedTensor(torch.Tensor):
             result_mask = result_mask > 0
             return MaskedTensor(result_data, result_mask)
 
-        assert False, "can't do it"
         return NotImplemented
 
     @classmethod
@@ -349,8 +311,6 @@ class MaskedTensor(torch.Tensor):
             return apply_native_unary(func, *args, **kwargs)
 
         assert len(args) > 0
-        if VERBOSE:
-            print("----tp\nfunc: ", func, " args: ", args, " kwargs: ", kwargs)
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:
             len(args) == 2
             len(kwargs) == 0
@@ -358,28 +318,6 @@ class MaskedTensor(torch.Tensor):
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
         mask = get_mask(args[0])
-        if VERBOSE:
-            print(
-                " data.dtype: ",
-                data.dtype,
-                " data.device: ",
-                data.device,
-                " data.size(): ",
-                data.size(),
-                " data.stride(): ",
-                data.stride(),
-            )
-        if mask is not None and VERBOSE:
-            print(
-                " mask.dtype: ",
-                mask.dtype,
-                " mask.device: ",
-                mask.device,
-                " mask.size(): ",
-                mask.size(),
-                " mask.stride(): ",
-                mask.stride(),
-            )
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
@@ -409,11 +347,7 @@ class MaskedTensor(torch.Tensor):
             input_data = get_data(args[0]).masked_fill(
                 ~get_mask(args[0]), float("-inf")
             )
-            if VERBOSE:
-                print("softmax data: ", data)
             result_data = func(input_data, args[1], args[2])
-            if VERBOSE:
-                print("softmax result_data: ", result_data)
             return MaskedTensor(result_data, get_mask(args[0]))
             assert len(args) == 1
             assert len(kwargs) == 0
@@ -423,14 +357,6 @@ class MaskedTensor(torch.Tensor):
         if func in [torch.ops.aten.ones_like]:
             len(args) == 1
             res_data = func(get_data(args[0]), **kwargs)
-            if VERBOSE:
-                print("ones_like - get_mask(args[0]): ", get_mask(args[0]))
-                print(
-                    "res_data.dtype: ",
-                    res_data.dtype,
-                    " res_data.device: ",
-                    res_data.device,
-                )
             return MaskedTensor(res_data, get_mask(args[0]))
         if func is torch.ops.aten._softmax_backward_data:
             assert len(args) == 4
