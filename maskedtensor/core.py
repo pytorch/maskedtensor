@@ -2,18 +2,6 @@ import torch
 from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 
-UNARY_FNS = [
-    torch.ops.aten.acos,
-    torch.ops.aten.cos,
-    torch.ops.aten.sqrt,
-    torch.ops.aten.log,
-    torch.ops.aten.exp,
-    torch.ops.aten.pow,
-    torch.ops.aten.sin,
-    torch.ops.aten.clamp,
-    torch.ops.aten.isnan,
-    torch.ops.aten.abs,
-]
 BINARY_FNS = [
     torch.ops.aten.add,
     torch.ops.aten.sub,
@@ -337,6 +325,12 @@ class MaskedTensor(torch.Tensor):
         if is_pass_through_fn(func):
             return apply_pass_through_fn(func, *args, **kwargs)
 
+        from maskedtensor import is_native_unary
+        from maskedtensor import apply_native_unary
+
+        if is_native_unary(func):
+            return apply_native_unary(func, *args, **kwargs)
+
         assert len(args) > 0
         if VERBOSE:
             print("----tp\nfunc: ", func, " args: ", args, " kwargs: ", kwargs)
@@ -384,18 +378,6 @@ class MaskedTensor(torch.Tensor):
             assert tuple(args[1]) == tuple(data.size())
             assert tuple(args[2]) == tuple(data.stride())
             return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
-        if func in UNARY_FNS:
-            assert is_masked_tensor(args[0])
-            if len(kwargs) == 0 and len(args) == 1:
-                return cls.unary(func, get_data(args[0]), get_mask(args[0]))
-            # e.g. pow
-            if len(kwargs) == 0 and len(args) == 2:
-                return MaskedTensor(func(get_data(args[0]), args[1]), get_mask(args[0]))
-            # e.g. clamp
-            if len(kwargs) == 0 and len(args) == 3:
-                return MaskedTensor(
-                    func(get_data(args[0]), args[1], args[2]), get_mask(args[0])
-                )
         if func in BINARY_FNS:
             assert len(kwargs) == 0
             assert len(args) == 2
