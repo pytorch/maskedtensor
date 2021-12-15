@@ -7,3 +7,5 @@ from .reductions import is_reduction
 from .reductions import apply_reduction
 from .passthrough import is_pass_through_fn
 from .passthrough import apply_pass_through_fn
+from .unary import is_native_unary
+from .unary import apply_native_unary

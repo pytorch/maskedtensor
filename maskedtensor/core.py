@@ -2,18 +2,6 @@ import torch
 from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 
-UNARY_FNS = [
-    torch.ops.aten.acos,
-    torch.ops.aten.cos,
-    torch.ops.aten.sqrt,
-    torch.ops.aten.log,
-    torch.ops.aten.exp,
-    torch.ops.aten.pow,
-    torch.ops.aten.sin,
-    torch.ops.aten.clamp,
-    torch.ops.aten.isnan,
-    torch.ops.aten.abs,
-]
 BINARY_FNS = [
     torch.ops.aten.add,
     torch.ops.aten.sub,
@@ -148,9 +136,9 @@ class MaskedTensor(torch.Tensor):
         kwargs["requires_grad"] = requires_grad
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
 
-    def __init__(self, data, mask, requires_grad=False):
-        if VERBOSE:
-            print("----in\ntype(data): ", type(data), " type(mask): ", type(mask))
+    def _validate_members(self):
+        data = self.masked_data
+        mask = self.masked_mask
         assert type(data) == type(mask)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
@@ -164,6 +152,14 @@ class MaskedTensor(torch.Tensor):
             or data.dtype == torch.int32
             or data.dtype == torch.int64
         )
+        assert data.dim() == mask.dim()
+        assert data.size() == mask.size()
+        assert not mask.requires_grad
+
+    def __init__(self, data, mask, requires_grad=False):
+        if VERBOSE:
+            print("----in\ntype(data): ", type(data), " type(mask): ", type(mask))
+
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
         mask = mask.contiguous()
@@ -173,12 +169,21 @@ class MaskedTensor(torch.Tensor):
             print("data.stride(): ", data.stride(), " mask.stride(): ", mask.stride())
             print("data:\n", data)
             print("mask:\n", mask)
-        assert data.dim() == mask.dim()
-        assert data.size() == mask.size()
-        assert not mask.requires_grad
         # Have to pick awkward names to not conflict with existing fields such as data
         self.masked_data = data
         self.masked_mask = mask
+        self._validate_members()
+
+    def _set_data_mask(self, data, mask):
+        # This method is regrettably necessary for in-place operations
+
+        # .contiguous cannot be overwritten so it's always contiguous
+        data = data.contiguous()
+        mask = mask.contiguous()
+
+        self.masked_data = data
+        self.masked_mask = mask
+        self._validate_members()
 
     def __repr__(self):
         formatter = "{0:8.4f}"
@@ -337,6 +342,12 @@ class MaskedTensor(torch.Tensor):
         if is_pass_through_fn(func):
             return apply_pass_through_fn(func, *args, **kwargs)
 
+        from maskedtensor import is_native_unary
+        from maskedtensor import apply_native_unary
+
+        if is_native_unary(func):
+            return apply_native_unary(func, *args, **kwargs)
+
         assert len(args) > 0
         if VERBOSE:
             print("----tp\nfunc: ", func, " args: ", args, " kwargs: ", kwargs)
@@ -384,18 +395,6 @@ class MaskedTensor(torch.Tensor):
             assert tuple(args[1]) == tuple(data.size())
             assert tuple(args[2]) == tuple(data.stride())
             return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
-        if func in UNARY_FNS:
-            assert is_masked_tensor(args[0])
-            if len(kwargs) == 0 and len(args) == 1:
-                return cls.unary(func, get_data(args[0]), get_mask(args[0]))
-            # e.g. pow
-            if len(kwargs) == 0 and len(args) == 2:
-                return MaskedTensor(func(get_data(args[0]), args[1]), get_mask(args[0]))
-            # e.g. clamp
-            if len(kwargs) == 0 and len(args) == 3:
-                return MaskedTensor(
-                    func(get_data(args[0]), args[1], args[2]), get_mask(args[0])
-                )
         if func in BINARY_FNS:
             assert len(kwargs) == 0
             assert len(args) == 2
