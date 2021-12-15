@@ -66,6 +66,8 @@ UNARY_NAMES = [
     "trunc",
 ]
 
+INPLACE_UNARY_NAMES = [n + "_" for n in (list(set(UNARY_NAMES) - set(['angle', 'positive', 'signbit'])))]
+
 # Explicitly tracking functions we know are currently not supported
 # This might be due to missing code gen or because of complex semantics
 UNARY_NAMES_UNSUPPORTED = [
@@ -115,19 +117,46 @@ def torch_unary(fn_name):
 
     return unary_fn
 
+def torch_inplace_unary(fn_name):
+    fn = getattr(torch.ops.aten, fn_name)
+    from .passthrough import _map_mt_args_kwargs, _wrap_result
+
+    def unary_fn(*args, **kwargs):
+        assert len(kwargs) == 0
+        if len(args) > 1:
+            for a in args[1:]:
+                assert not torch.is_tensor(a)
+        mask_args, mask_kwargs = _map_mt_args_kwargs(
+            args, kwargs, lambda x: x.masked_mask
+        )
+        data_args, data_kwargs = _map_mt_args_kwargs(
+            args, kwargs, lambda x: x.masked_data
+        )
+        result_data = fn(*data_args)
+        args[0]._set_data_mask(result_data, mask_args[0])
+        return args[0]
+
+    return unary_fn
+
 
 NATIVE_UNARY_MAP = {
     getattr(torch.ops.aten, name): torch_unary(name) for name in UNARY_NAMES
 }
+NATIVE_INPLACE_UNARY_MAP = {
+    getattr(torch.ops.aten, name): torch_inplace_unary(name) for name in INPLACE_UNARY_NAMES
+}
 
 NATIVE_UNARY_FNS = list(NATIVE_UNARY_MAP.keys())
+NATIVE_INPLACE_UNARY_FNS = list(NATIVE_INPLACE_UNARY_MAP.keys())
 
 
 def is_native_unary(fn):
-    return fn in NATIVE_UNARY_FNS
+    return fn in NATIVE_UNARY_FNS or fn in NATIVE_INPLACE_UNARY_FNS
 
 
 def apply_native_unary(fn, *args, **kwargs):
     if fn in NATIVE_UNARY_FNS:
         return NATIVE_UNARY_MAP[fn](*args, **kwargs)
+    if fn in NATIVE_INPLACE_UNARY_FNS:
+        return NATIVE_INPLACE_UNARY_MAP[fn](*args, **kwargs)
     return NotImplemented

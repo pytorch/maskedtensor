@@ -136,9 +136,9 @@ class MaskedTensor(torch.Tensor):
         kwargs["requires_grad"] = requires_grad
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
 
-    def __init__(self, data, mask, requires_grad=False):
-        if VERBOSE:
-            print("----in\ntype(data): ", type(data), " type(mask): ", type(mask))
+    def _validate_members(self):
+        data = self.masked_data
+        mask = self.masked_mask
         assert type(data) == type(mask)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
@@ -152,6 +152,14 @@ class MaskedTensor(torch.Tensor):
             or data.dtype == torch.int32
             or data.dtype == torch.int64
         )
+        assert data.dim() == mask.dim()
+        assert data.size() == mask.size()
+        assert not mask.requires_grad
+
+    def __init__(self, data, mask, requires_grad=False):
+        if VERBOSE:
+            print("----in\ntype(data): ", type(data), " type(mask): ", type(mask))
+
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
         mask = mask.contiguous()
@@ -161,12 +169,21 @@ class MaskedTensor(torch.Tensor):
             print("data.stride(): ", data.stride(), " mask.stride(): ", mask.stride())
             print("data:\n", data)
             print("mask:\n", mask)
-        assert data.dim() == mask.dim()
-        assert data.size() == mask.size()
-        assert not mask.requires_grad
         # Have to pick awkward names to not conflict with existing fields such as data
         self.masked_data = data
         self.masked_mask = mask
+        self._validate_members()
+
+    def _set_data_mask(self, data, mask):
+        # This method is regrettably necessary for in-place operations
+
+        # .contiguous cannot be overwritten so it's always contiguous
+        data = data.contiguous()
+        mask = mask.contiguous()
+
+        self.masked_data = data
+        self.masked_mask = mask
+        self._validate_members()
 
     def __repr__(self):
         formatter = "{0:8.4f}"
