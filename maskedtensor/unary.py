@@ -43,6 +43,7 @@ UNARY_NAMES = [
     "log2",
     "logit",
     "i0",
+    "isnan",
     "nan_to_num",
     "neg",
     "negative",
@@ -67,7 +68,7 @@ UNARY_NAMES = [
 ]
 
 INPLACE_UNARY_NAMES = [
-    n + "_" for n in (list(set(UNARY_NAMES) - set(["angle", "positive", "signbit"])))
+    n + "_" for n in (list(set(UNARY_NAMES) - set(["angle", "positive", "signbit", "isnan"])))
 ]
 
 # Explicitly tracking functions we know are currently not supported
