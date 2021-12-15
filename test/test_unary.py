@@ -11,6 +11,7 @@ import maskedtensor
 from maskedtensor import masked_tensor
 from maskedtensor.unary import NATIVE_UNARY_FNS, NATIVE_INPLACE_UNARY_FNS
 
+
 def _get_test_data(fn_name):
     data = torch.randn(10, 10)
     mask = torch.rand(10, 10) > 0.5
@@ -30,6 +31,7 @@ def _get_test_data(fn_name):
         data = data.mul(128).to(torch.int8)
     return data, mask
 
+
 def _get_sample_kwargs(fn_name):
     if fn_name[-1] == "_":
         fn_name = fn_name[:-1]
@@ -38,6 +40,7 @@ def _get_sample_kwargs(fn_name):
         kwargs["min"] = -0.5
         kwargs["max"] = 0.5
     return kwargs
+
 
 def _get_sample_args(fn_name, data, mask):
     if fn_name[-1] == "_":
@@ -49,6 +52,7 @@ def _get_sample_args(fn_name, data, mask):
         t_args += [2.0]
         mt_args += [2.0]
     return t_args, mt_args
+
 
 def _compare_mt_t(mt_result, t_result):
     mask = mt_result.masked_mask
@@ -71,6 +75,7 @@ def test_unary(fn):
     t_result = fn(*t_args, **kwargs)
     _compare_mt_t(mt_result, t_result)
 
+
 @pytest.mark.parametrize("fn", NATIVE_INPLACE_UNARY_FNS)
 def test_inplace_unary(fn):
     torch.random.manual_seed(0)
@@ -83,4 +88,3 @@ def test_inplace_unary(fn):
     mt_result = fn(*mt_args, **kwargs)
     t_result = fn(*t_args, **kwargs)
     _compare_mt_t(mt_result, t_result)
-

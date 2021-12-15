@@ -66,7 +66,9 @@ UNARY_NAMES = [
     "trunc",
 ]
 
-INPLACE_UNARY_NAMES = [n + "_" for n in (list(set(UNARY_NAMES) - set(['angle', 'positive', 'signbit'])))]
+INPLACE_UNARY_NAMES = [
+    n + "_" for n in (list(set(UNARY_NAMES) - set(["angle", "positive", "signbit"])))
+]
 
 # Explicitly tracking functions we know are currently not supported
 # This might be due to missing code gen or because of complex semantics
@@ -117,6 +119,7 @@ def torch_unary(fn_name):
 
     return unary_fn
 
+
 def torch_inplace_unary(fn_name):
     fn = getattr(torch.ops.aten, fn_name)
     from .passthrough import _map_mt_args_kwargs, _wrap_result
@@ -143,7 +146,8 @@ NATIVE_UNARY_MAP = {
     getattr(torch.ops.aten, name): torch_unary(name) for name in UNARY_NAMES
 }
 NATIVE_INPLACE_UNARY_MAP = {
-    getattr(torch.ops.aten, name): torch_inplace_unary(name) for name in INPLACE_UNARY_NAMES
+    getattr(torch.ops.aten, name): torch_inplace_unary(name)
+    for name in INPLACE_UNARY_NAMES
 }
 
 NATIVE_UNARY_FNS = list(NATIVE_UNARY_MAP.keys())
