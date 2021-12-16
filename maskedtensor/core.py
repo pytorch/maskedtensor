@@ -3,20 +3,9 @@ from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
 import os
 import logging
+
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
-BINARY_FNS = [
-    torch.ops.aten.add,
-    torch.ops.aten.sub,
-    torch.ops.aten.div,
-    torch.ops.aten.mul,
-    torch.ops.aten.add_,
-    torch.ops.aten.le,
-    torch.ops.aten.ne,
-    torch.ops.aten.eq,
-    torch.ops.aten.bitwise_and_,
-    torch.ops.aten.bitwise_or_,
-]
 
 def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
@@ -156,8 +145,7 @@ class MaskedTensor(torch.Tensor):
         assert not mask.requires_grad
 
     def __init__(self, data, mask, requires_grad=False):
-        logging.debug(
-            f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
+        logging.debug(f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
 
         # .contiguous cannot be overwritten so it's always contiguous
         data = data.contiguous()
@@ -240,13 +228,6 @@ class MaskedTensor(torch.Tensor):
         return MaskedTensor(fn(data), mask)
 
     @classmethod
-    def binary(cls, fn, args0, args1):
-        if not masks_match(args0, args1):
-            raise ValueError("If both inputs are MaskedTensors their masks must match.")
-        result_mask = get_at_least_one_mask(args0, args1)
-        return MaskedTensor(fn(get_data(args0), get_data(args1)), result_mask)
-
-    @classmethod
     def matmul(cls, input0, input1, func):
         logging.debug("Calling matmul with type({type(input0)}, {type(input1)})")
         if is_masked_tensor(input0) and is_masked_tensor(input1):
@@ -310,6 +291,12 @@ class MaskedTensor(torch.Tensor):
         if is_native_unary(func):
             return apply_native_unary(func, *args, **kwargs)
 
+        from maskedtensor import is_native_binary
+        from maskedtensor import apply_native_binary
+
+        if is_native_binary(func):
+            return apply_native_binary(func, *args, **kwargs)
+
         assert len(args) > 0
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:
             len(args) == 2
@@ -333,10 +320,6 @@ class MaskedTensor(torch.Tensor):
             assert tuple(args[1]) == tuple(data.size())
             assert tuple(args[2]) == tuple(data.stride())
             return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
-        if func in BINARY_FNS:
-            assert len(kwargs) == 0
-            assert len(args) == 2
-            return cls.binary(func, args[0], args[1])
         if func in [torch.ops.aten.detach]:
             assert len(args) == 1
             assert len(kwargs) == 0
