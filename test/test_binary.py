@@ -18,7 +18,7 @@ def _get_test_data(fn_name):
     data0 = torch.randn(10, 10)
     data1 = torch.randn(10, 10)
     mask = torch.rand(10, 10) > 0.5
-    if fn_name in ["bitwise_and", "bitwise_or"]:
+    if fn_name in ["bitwise_and", "bitwise_or", "bitwise_xor"]:
         data0 = data0.mul(128).to(torch.int8)
         data1 = data1.mul(128).to(torch.int8)
     return data0, data1, mask
