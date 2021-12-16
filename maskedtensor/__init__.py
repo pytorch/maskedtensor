@@ -9,3 +9,5 @@ from .passthrough import is_pass_through_fn
 from .passthrough import apply_pass_through_fn
 from .unary import is_native_unary
 from .unary import apply_native_unary
+from .binary import is_native_binary
+from .binary import apply_native_binary

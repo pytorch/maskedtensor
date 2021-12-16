@@ -7,12 +7,11 @@ BINARY_NAMES = [
     "sub",
     "div",
     "mul",
-    "add_",
     "le",
     "ne",
     "eq",
-    "bitwise_and_",
-    "bitwise_or_",
+    "bitwise_and",
+    "bitwise_or",
 ]
 
 INPLACE_BINARY_NAMES = [
@@ -27,12 +26,14 @@ def torch_binary(fn_name):
 
     def binary_fn(*args, **kwargs):
         assert len(kwargs) == 0
-        if len(args) > 1:
+        if len(args) > 2:
             for a in args[1:]:
                 assert not torch.is_tensor(a)
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
+        assert mask_args[0].dim() == mask_args[1].dim()
+        assert torch.eq(mask_args[0], mask_args[1]).all().item()
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
@@ -48,12 +49,14 @@ def torch_inplace_binary(fn_name):
 
     def binary_fn(*args, **kwargs):
         assert len(kwargs) == 0
-        if len(args) > 1:
+        if len(args) > 2:
             for a in args[1:]:
                 assert not torch.is_tensor(a)
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
+        assert mask_args[0].dim() == mask_args[1].dim()
+        assert torch.eq(mask_args[0], mask_args[1]).all().item()
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
