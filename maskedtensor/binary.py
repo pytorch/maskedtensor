@@ -29,6 +29,10 @@ BINARY_NAMES = [
     "sub",
     "subtract",
     "true_divide",
+    "eq",
+    "ne",
+    "le",
+    "ge",
 ]
 
 INPLACE_BINARY_NAMES = [
