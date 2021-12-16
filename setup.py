@@ -15,7 +15,7 @@ def read(*names, **kwargs):
         return fp.read()
 
 
-version = "0.0.5"
+version = "0.0.6"
 package_name = "maskedtensor"
 
 cwd = os.path.dirname(os.path.abspath(__file__))
