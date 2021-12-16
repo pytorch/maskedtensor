@@ -75,3 +75,18 @@ def test_inplace_binary(fn):
     mt_result = fn(*mt_args, **kwargs)
     t_result = fn(*t_args, **kwargs)
     _compare_mt_t(mt_result, t_result)
+
+@pytest.mark.parametrize("fn_name", ["add", "add_"])
+def test_masks_match(fn_name):
+    torch.random.manual_seed(0)
+    fn = getattr(torch.ops.aten, fn_name)
+    data0, data1, mask = _get_test_data(fn_name)
+    mask0 = mask
+    mask1 = torch.rand(mask.size()) > 0.5
+    mt0 = masked_tensor(data0, mask0)
+    mt1 = masked_tensor(data1, mask1)
+    try:
+        fn(mt0, mt1)
+        assert False
+    except ValueError as e:
+        assert "Input masks must match. If you need support for this, please open an issue on Github." == str(e)

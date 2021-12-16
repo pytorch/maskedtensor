@@ -19,6 +19,9 @@ INPLACE_BINARY_NAMES = [
     for n in (list(set(BINARY_NAMES) - set(["angle", "positive", "signbit", "isnan"])))
 ]
 
+def masks_match(a, b):
+    return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
+
 
 def torch_binary(fn_name):
     fn = getattr(torch.ops.aten, fn_name)
@@ -32,8 +35,8 @@ def torch_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        assert mask_args[0].dim() == mask_args[1].dim()
-        assert torch.eq(mask_args[0], mask_args[1]).all().item()
+        if not masks_match(*mask_args[:2]):
+            raise ValueError("Input masks must match. If you need support for this, please open an issue on Github.")
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
@@ -55,8 +58,8 @@ def torch_inplace_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        assert mask_args[0].dim() == mask_args[1].dim()
-        assert torch.eq(mask_args[0], mask_args[1]).all().item()
+        if not masks_match(*mask_args[:2]):
+            raise ValueError("Input masks must match. If you need support for this, please open an issue on Github.")
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
