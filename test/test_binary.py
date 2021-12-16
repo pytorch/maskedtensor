@@ -31,14 +31,19 @@ def _get_sample_kwargs(fn_name):
     return kwargs
 
 
-def _get_sample_args(fn_name, data0, data1, mask):
+def _yield_sample_args(fn_name, data0, data1, mask):
     if fn_name[-1] == "_":
         fn_name = fn_name[:-1]
     mt0 = masked_tensor(data0, mask)
     mt1 = masked_tensor(data1, mask)
+
     t_args = [data0, data1]
     mt_args = [mt0, mt1]
-    return t_args, mt_args
+    yield t_args, mt_args
+
+    t_args = [data0, data1]
+    mt_args = [mt0, data1]
+    yield t_args, mt_args
 
 
 def _compare_mt_t(mt_result, t_result):
@@ -56,11 +61,10 @@ def test_binary(fn):
     data0, data1, mask = _get_test_data(fn_name)
     kwargs = _get_sample_kwargs(fn_name)
 
-    t_args, mt_args = _get_sample_args(fn_name, data0, data1, mask)
-
-    mt_result = fn(*mt_args, **kwargs)
-    t_result = fn(*t_args, **kwargs)
-    _compare_mt_t(mt_result, t_result)
+    for (t_args, mt_args) in _yield_sample_args(fn_name, data0, data1, mask):
+        mt_result = fn(*mt_args, **kwargs)
+        t_result = fn(*t_args, **kwargs)
+        _compare_mt_t(mt_result, t_result)
 
 
 @pytest.mark.parametrize("fn", NATIVE_INPLACE_BINARY_FNS)
@@ -70,11 +74,11 @@ def test_inplace_binary(fn):
     data0, data1, mask = _get_test_data(fn_name)
     kwargs = _get_sample_kwargs(fn_name)
 
-    t_args, mt_args = _get_sample_args(fn_name, data0, data1, mask)
+    for (t_args, mt_args) in _yield_sample_args(fn_name, data0, data1, mask):
+        mt_result = fn(*mt_args, **kwargs)
+        t_result = fn(*t_args, **kwargs)
+        _compare_mt_t(mt_result, t_result)
 
-    mt_result = fn(*mt_args, **kwargs)
-    t_result = fn(*t_args, **kwargs)
-    _compare_mt_t(mt_result, t_result)
 
 @pytest.mark.parametrize("fn_name", ["add", "add_"])
 def test_masks_match(fn_name):
@@ -89,4 +93,7 @@ def test_masks_match(fn_name):
         fn(mt0, mt1)
         assert False
     except ValueError as e:
-        assert "Input masks must match. If you need support for this, please open an issue on Github." == str(e)
+        assert (
+            "Input masks must match. If you need support for this, please open an issue on Github."
+            == str(e)
+        )

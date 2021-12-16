@@ -4,8 +4,8 @@ from torch.overrides import get_default_nowrap_functions
 
 BINARY_NAMES = [
     "add",
-#    "addcdiv",
-#    "addcmul",
+    #    "addcdiv",
+    #    "addcmul",
     "atan2",
     "arctan2",
     "bitwise_and",
@@ -19,9 +19,9 @@ BINARY_NAMES = [
     "fmod",
     "logaddexp",
     "logaddexp2",
-#    "logical_and",
-#    "logical_or",
-#    "logical_xor",
+    #    "logical_and",
+    #    "logical_or",
+    #    "logical_xor",
     "mul",
     "multiply",
     "nextafter",
@@ -32,13 +32,26 @@ BINARY_NAMES = [
 ]
 
 INPLACE_BINARY_NAMES = [
-    n + "_"
-    for n in (list(set(BINARY_NAMES) - set(["logaddexp", "logaddexp2"])))
+    n + "_" for n in (list(set(BINARY_NAMES) - set(["logaddexp", "logaddexp2"])))
 ]
 
 
+def get_mask(a):
+    from maskedtensor import is_masked_tensor
+
+    if is_masked_tensor(a):
+        return a.masked_mask
+    return None
+
+
 def masks_match(a, b):
-    return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
+    from maskedtensor import is_masked_tensor
+
+    if is_masked_tensor(a) and is_masked_tensor(b):
+        mask_a = get_mask(a)
+        mask_b = get_mask(b)
+        return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
+    return True
 
 
 def torch_binary(fn_name):
@@ -53,7 +66,7 @@ def torch_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        if not masks_match(*mask_args[:2]):
+        if not masks_match(*args[:2]):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
@@ -78,7 +91,7 @@ def torch_inplace_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        if not masks_match(*mask_args[:2]):
+        if not masks_match(*args[:2]):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
@@ -86,6 +99,9 @@ def torch_inplace_binary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         result_data = fn(*data_args)
+
+        from maskedtensor import is_masked_tensor
+
         args[0]._set_data_mask(result_data, mask_args[0])
         return args[0]
 
