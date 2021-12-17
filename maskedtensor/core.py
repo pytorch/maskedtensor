@@ -11,26 +11,6 @@ def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
 
 
-def get_data(a):
-    if is_masked_tensor(a):
-        return a.masked_data
-    return a
-
-
-def get_mask(a):
-    if is_masked_tensor(a):
-        return a.masked_mask
-    return None
-
-
-def get_at_least_one_mask(a, b):
-    assert is_masked_tensor(a) or is_masked_tensor(b)
-    assert masks_match(a, b)
-    if is_masked_tensor(a):
-        return get_mask(a)
-    return get_mask(b)
-
-
 def masks_match(a, b):
     if is_masked_tensor(a) and is_masked_tensor(b):
         mask_a = get_mask(a)
@@ -71,6 +51,22 @@ def masked_tensor_str(data, mask, formatter):
     sub_strings = [masked_tensor_str(d, m, formatter) for (d, m) in zip(data, mask)]
     sub_strings = ["\n".join(["  " + si for si in s.split("\n")]) for s in sub_strings]
     return "[\n" + ",\n".join(sub_strings) + "\n]"
+
+
+def get_data(a):
+    from maskedtensor import is_masked_tensor
+
+    if is_masked_tensor(a):
+        return a.masked_data
+    return a
+
+
+def get_mask(a):
+    from maskedtensor import is_masked_tensor
+
+    if is_masked_tensor(a):
+        return a.masked_mask
+    return None
 
 
 class MaskedContigous(torch.autograd.Function):
@@ -228,50 +224,6 @@ class MaskedTensor(torch.Tensor):
         return MaskedTensor(fn(data), mask)
 
     @classmethod
-    def matmul(cls, input0, input1, func):
-        logging.debug("Calling matmul with type({type(input0)}, {type(input1)})")
-        if is_masked_tensor(input0) and is_masked_tensor(input1):
-            data0 = get_data(input0)
-            data1 = get_data(input1)
-            input_mask0 = get_mask(input0)
-            input_mask1 = get_mask(input1)
-            input_data0 = data0.masked_fill(~input_mask0, 0)
-            input_data1 = data1.masked_fill(~input_mask1, 0)
-            result_data = func(input_data0, input_data1)
-            result_mask = func(input_mask0.float(), input_mask1.float())
-            logging.debug("bmm input_data1:  {input_data1}")
-            logging.debug("bmm input_mask1:  {input_mask1}")
-            logging.debug("bmm input_data0:  {input_data0}")
-            logging.debug("bmm input_mask0:  {input_mask0}")
-            logging.debug("bmm result_data:  {result_data}")
-            logging.debug("bmm result_mask0: {result_mask}")
-            result_mask = result_mask > 0
-            logging.debug("bmm result_mask1: {result_mask}")
-            if func is torch.ops.aten.mm:
-                assert torch.equal(input_mask0, input_mask1.transpose(0, 1))
-            if func is torch.ops.aten.bmm:
-                assert torch.equal(input_mask0, input_mask1.transpose(1, 2))
-            return MaskedTensor(result_data, result_mask)
-        if is_masked_tensor(input0) and not is_masked_tensor(input1):
-            data0 = get_data(input0)
-            input_mask0 = get_mask(input0)
-            input_data0 = data0.masked_fill(~input_mask0, 0)
-            result_data = func(input_data0, input1)
-            result_mask = func(input_mask0.float(), torch.ones_like(input1).float())
-            result_mask = result_mask > 0
-            return MaskedTensor(result_data, result_mask)
-        if not is_masked_tensor(input0) and is_masked_tensor(input1):
-            data1 = get_data(input1)
-            input_mask1 = get_mask(input1)
-            input_data1 = data1.masked_fill(~input_mask1, 0)
-            result_data = func(input0, input_data1)
-            result_mask = func(torch.ones_like(input0).float(), input_mask1.float())
-            result_mask = result_mask > 0
-            return MaskedTensor(result_data, result_mask)
-
-        return NotImplemented
-
-    @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
         from maskedtensor import is_reduction
         from maskedtensor import apply_reduction
@@ -296,6 +248,12 @@ class MaskedTensor(torch.Tensor):
 
         if is_native_binary(func):
             return apply_native_binary(func, *args, **kwargs)
+
+        from maskedtensor import is_native_matmul
+        from maskedtensor import apply_native_matmul
+
+        if is_native_matmul(func):
+            return apply_native_matmul(func, *args, **kwargs)
 
         assert len(args) > 0
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:

@@ -49,7 +49,23 @@ BINARY_NAMES = [
 ]
 
 INPLACE_BINARY_NAMES = [
-    n + "_" for n in (list(set(BINARY_NAMES) - set(["logaddexp", "logaddexp2", "equal", "fmin", "minimum", "maximum", "fmax"])))
+    n + "_"
+    for n in (
+        list(
+            set(BINARY_NAMES)
+            - set(
+                [
+                    "logaddexp",
+                    "logaddexp2",
+                    "equal",
+                    "fmin",
+                    "minimum",
+                    "maximum",
+                    "fmax",
+                ]
+            )
+        )
+    )
 ]
 
 
@@ -69,6 +85,16 @@ def masks_match(a, b):
         mask_b = get_mask(b)
         return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
+
+
+def get_at_least_one_mask(a, b):
+    from maskedtensor import is_masked_tensor
+
+    assert is_masked_tensor(a) or is_masked_tensor(b)
+    assert masks_match(a, b)
+    if is_masked_tensor(a):
+        return get_mask(a)
+    return get_mask(b)
 
 
 def torch_binary(fn_name):
@@ -91,7 +117,9 @@ def torch_binary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         result_data = fn(*data_args)
-        return _wrap_result(result_data, mask_args[0])
+        result_mask = get_at_least_one_mask(*args[:2])
+        result_mask = result_mask.expand_as(result_data)
+        return _wrap_result(result_data, result_mask)
 
     return binary_fn
 

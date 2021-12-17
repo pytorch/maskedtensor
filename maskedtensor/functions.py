@@ -6,39 +6,6 @@ from torch.nn.functional import linear
 Tensor = torch.Tensor
 
 
-class MaskedBmm(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, q, k, attn_mask):
-        from maskedtensor import is_masked_tensor
-
-        assert not is_masked_tensor(q)
-        assert is_masked_tensor(k)
-        k_mask = k.mask()
-        ctx.mark_non_differentiable(attn_mask, k_mask)
-        ctx.save_for_backward(attn_mask, k_mask, q, k)
-        attn = torch.bmm(q, k)
-        return_mask = attn_mask.expand_as(attn.masked_data)
-        return masked_tensor(attn.masked_data + return_mask, return_mask == 0)
-
-    @staticmethod
-    def backward(ctx, grad):
-        attn_mask, k_mask, q, k = ctx.saved_tensors
-        grad_data = grad.masked_data
-
-        k_trans = k.transpose(1, 2)
-        q_grad = torch.bmm(grad_data, k_trans)
-
-        q_trans = q.transpose(1, 2)
-        k_grad = torch.bmm(q_trans, grad)
-        k_grad = masked_tensor(k_grad.masked_data, k_mask)
-
-        return q_grad, k_grad, None
-
-
-def masked_bmm(q, k, attn_mask):
-    return MaskedBmm.apply(q, k, attn_mask)
-
-
 def _in_projection_packed(q, k, v, w, b):
     # if is_masked_tensor(k):
     #     assert not is_masked_tensor(q)
@@ -47,10 +14,6 @@ def _in_projection_packed(q, k, v, w, b):
     w_q, w_k, w_v = w.chunk(3)
     assert b is None
     b_q = b_k = b_v = None
-    # print("k: ", k)
-    # print("w_k: ", w_k)
-    # print("k.size(): ", k.size())
-    # print("w_k.size(): ", w_k.size())
     return linear(q, w_q, b_q), linear(k, w_k, b_k), linear(v, w_v, b_v)
 
 
@@ -58,9 +21,10 @@ def _scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=0.0):
     B, Nt, E = q.shape
     q = q / math.sqrt(E)
     # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
+    from maskedtensor import masked_bmm
+
     attn = masked_bmm(q, k.transpose(-2, -1), attn_mask)
     attn = torch.nn.functional.softmax(attn, dim=-1)
-    print("attn: ", attn)
     if dropout_p > 0.0:
         attn = dropout(attn, p=dropout_p)
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
@@ -162,15 +126,11 @@ def multi_head_attention_forward(
         q, k, v, attn_mask, dropout_p
     )
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
-    print("attn_output0: ", attn_output)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
-    print("attn_output1: ", attn_output)
 
     if need_weights:
         # average attention weights over heads
         attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
-        print("attn_output_weights: ", attn_output_weights)
-        print("attn_output_weights.sum(dim=1): ", attn_output_weights.sum(dim=1))
         return attn_output, attn_output_weights.sum(dim=1) / num_heads
     else:
         return attn_output, None
