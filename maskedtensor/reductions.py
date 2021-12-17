@@ -22,6 +22,7 @@ def masked_all(*args, **kwargs):
         return masked_all_all(args[0], mask=kwargs["mask"])
     return masked_all_dim(*args, **kwargs)
 
+
 def multidim_any(mask, dim, keepdim):
     if isinstance(dim, int):
         return multidim_any(mask, [dim], keepdim)

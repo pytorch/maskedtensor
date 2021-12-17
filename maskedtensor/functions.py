@@ -22,6 +22,7 @@ def _scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=0.0):
     q = q / math.sqrt(E)
     # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
     from maskedtensor import masked_bmm
+
     attn = masked_bmm(q, k.transpose(-2, -1), attn_mask)
     attn = torch.nn.functional.softmax(attn, dim=-1)
     if dropout_p > 0.0:

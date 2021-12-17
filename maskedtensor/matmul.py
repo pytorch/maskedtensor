@@ -107,6 +107,7 @@ def torch_matmul(func_name):
             return MaskedTensor(result_data, result_mask)
 
         return NotImplemented
+
     return matmul
 
 

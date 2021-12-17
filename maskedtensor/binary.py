@@ -86,8 +86,10 @@ def masks_match(a, b):
         return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
     return True
 
+
 def get_at_least_one_mask(a, b):
     from maskedtensor import is_masked_tensor
+
     assert is_masked_tensor(a) or is_masked_tensor(b)
     assert masks_match(a, b)
     if is_masked_tensor(a):

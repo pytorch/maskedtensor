@@ -11,8 +11,6 @@ def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
 
 
-
-
 def masks_match(a, b):
     if is_masked_tensor(a) and is_masked_tensor(b):
         mask_a = get_mask(a)
@@ -54,6 +52,7 @@ def masked_tensor_str(data, mask, formatter):
     sub_strings = ["\n".join(["  " + si for si in s.split("\n")]) for s in sub_strings]
     return "[\n" + ",\n".join(sub_strings) + "\n]"
 
+
 def get_data(a):
     from maskedtensor import is_masked_tensor
 
@@ -68,8 +67,6 @@ def get_mask(a):
     if is_masked_tensor(a):
         return a.masked_mask
     return None
-
-
 
 
 class MaskedContigous(torch.autograd.Function):
@@ -110,6 +107,7 @@ class MaskedWhere(torch.autograd.Function):
             torch.ops.aten.where(cond, grad_output, masked_out_like(grad_output)),
             torch.ops.aten.where(cond, masked_out_like(grad_output), grad_output),
         )
+
 
 class MaskedTensor(torch.Tensor):
     @staticmethod
