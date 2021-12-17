@@ -49,7 +49,23 @@ BINARY_NAMES = [
 ]
 
 INPLACE_BINARY_NAMES = [
-    n + "_" for n in (list(set(BINARY_NAMES) - set(["logaddexp", "logaddexp2", "equal", "fmin", "minimum", "maximum", "fmax"])))
+    n + "_"
+    for n in (
+        list(
+            set(BINARY_NAMES)
+            - set(
+                [
+                    "logaddexp",
+                    "logaddexp2",
+                    "equal",
+                    "fmin",
+                    "minimum",
+                    "maximum",
+                    "fmax",
+                ]
+            )
+        )
+    )
 ]
 
 

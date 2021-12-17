@@ -5,7 +5,7 @@ from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
 
-class TestMaskedTensor(TestCase):
+class TestMaskedTensorMatmul(TestCase):
     def test_bmm(self):
         x = torch.rand(3, 2, 1)
         key_padding_mask = torch.as_tensor(
