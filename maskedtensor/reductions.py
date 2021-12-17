@@ -22,6 +22,13 @@ def masked_all(*args, **kwargs):
         return masked_all_all(args[0], mask=kwargs["mask"])
     return masked_all_dim(*args, **kwargs)
 
+def multidim_any(mask, dim, keepdim):
+    if isinstance(dim, int):
+        return multidim_any(mask, [dim], keepdim)
+    for d in sorted(dim)[::-1]:
+        mask = torch.any(mask, dim=d, keepdim=keepdim)
+    return mask
+
 
 def get_masked_fn(fn):
     if fn == "all":
@@ -51,7 +58,7 @@ def torch_reduce_dim(fn):
             result_data = masked_fn(
                 data, dim=dim, keepdim=keepdim, dtype=dtype, mask=mask
             )
-        return MaskedTensor(result_data, torch.any(mask, dim=dim, keepdim=keepdim),)
+        return MaskedTensor(result_data, multidim_any(mask, dim, keepdim))
 
     return reduce_dim
 

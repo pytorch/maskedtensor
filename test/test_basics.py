@@ -25,7 +25,7 @@ class TestMaskedTensor(TestCase):
         mx = maskedtensor.masked_tensor(x, m, requires_grad=True)
         ts = torch.softmax(mx, -1)
         ts.sum().backward()
-        xinf = x.masked_fill(~m, float('-inf')).detach().clone().requires_grad_()
+        xinf = x.masked_fill(~m, float("-inf")).detach().clone().requires_grad_()
         tsinf = torch.softmax(xinf, -1)
 
     def test_mha_issue_41508(self):
@@ -42,17 +42,10 @@ class TestMaskedTensor(TestCase):
 
         x = torch.rand(3, 2, 1)
         key_padding_mask = torch.as_tensor(
-            [
-                [False, False, False],
-                [False, True, True],
-            ]
+            [[False, False, False], [False, True, True],]
         )
         attn_mask = torch.as_tensor(
-            [
-                [False, True, True],
-                [False, False, True],
-                [True, False, False],
-            ]
+            [[False, True, True], [False, False, True], [True, False, False],]
         )
         output, scores = attn_nn(
             x, x, x, key_padding_mask=key_padding_mask, attn_mask=attn_mask
@@ -67,6 +60,20 @@ class TestMaskedTensor(TestCase):
         loss1 = output[0, :].sum()
         self.assertEqual(loss0, loss1.masked_data)
 
+    def test_chunk(self):
+        return
+        # This breaks because split_backward allocates
+        # Tensors using zero and then cats them together.
+        # I don't know why the masks are coming into play here.
+        # It's an autograd thing.
+        k_data = torch.tensor([4.0])
+        k_mask = torch.tensor([True])
+        k = maskedtensor.masked_tensor(k_data[0], k_mask[0], requires_grad=True)
+        w = torch.tensor([1.0, 2.0], requires_grad=True)
+        w_q, w_k = w.chunk(2)
+        o0 = k + w_k
+        o0.backward()
+        return
 
 if __name__ == "__main__":
     unittest.main()

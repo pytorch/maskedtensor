@@ -11,12 +11,6 @@ def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
 
 
-def get_at_least_one_mask(a, b):
-    assert is_masked_tensor(a) or is_masked_tensor(b)
-    assert masks_match(a, b)
-    if is_masked_tensor(a):
-        return get_mask(a)
-    return get_mask(b)
 
 
 def masks_match(a, b):
