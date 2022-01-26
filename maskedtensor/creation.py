@@ -1,3 +1,5 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 import torch
 from .core import MaskedTensor
 from typing import Optional, Tuple, List

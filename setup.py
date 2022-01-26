@@ -1,3 +1,5 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 import setuptools
 import distutils.command.clean
 import shutil

@@ -1,3 +1,5 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 from .core import MaskedTensor
 from .core import is_masked_tensor
 from .creation import masked_tensor

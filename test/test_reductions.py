@@ -1,3 +1,5 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 import unittest
 import torch
 from maskedtensor import masked_tensor
