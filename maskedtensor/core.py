@@ -111,6 +111,27 @@ class MaskedWhere(torch.autograd.Function):
         )
 
 
+class MaskedGather(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input, dim, index):
+        ctx.mark_non_differentiable(index)
+        ctx.save_for_backward(input, index)
+        ctx.dim = dim
+
+        return torch.ops.aten.gather(input.to_tensor(0), dim, index)
+
+    @staticmethod
+    def backward(ctx, grad):
+        input, index = ctx.saved_tensors
+        dim = ctx.dim
+        data = torch.zeros_like(get_data(input), dtype=grad.dtype).scatter_add(dim, index, grad)
+        return (
+            data,
+            None,
+            None,
+        )
+
+
 class MaskedTensor(torch.Tensor):
     @staticmethod
     def __new__(cls, data, mask, requires_grad=False):
@@ -209,6 +230,10 @@ class MaskedTensor(torch.Tensor):
             assert len(args) == 3
             assert len(kwargs) == 0
             return MaskedWhere.apply(*args)
+        if func in [torch.Tensor.gather, torch.gather]:
+            assert len(args) == 3
+            assert len(kwargs) == 0
+            return MaskedGather.apply(*args)
         if func is torch.Tensor.contiguous:
             return MaskedContigous.apply(args[0])
         if not all(issubclass(cls, t) for t in types):

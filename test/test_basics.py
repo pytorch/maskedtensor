@@ -29,6 +29,43 @@ class TestMaskedTensor(TestCase):
         ts.sum().backward()
         xinf = x.masked_fill(~m, float("-inf")).detach().clone().requires_grad_()
         tsinf = torch.softmax(xinf, -1)
+    
+    def _test_gather(self, size_x, size_ind, dim):
+        x = torch.randn(size_x, requires_grad=True)
+        if len(size_ind) > 0 and len(size_x) > 0:
+            index = torch.randint(x.size(dim), size_ind)
+        else:
+            index = torch.zeros(size_ind, dtype=torch.int64)
+
+        m = torch.randint(1, 2, size_x).bool()
+        mt = maskedtensor.masked_tensor(x, m, requires_grad=True)
+        x0 = x.masked_fill(~m, 0).detach().clone().requires_grad_(True)
+
+        out = torch.gather(x0, dim, index)
+        grad = torch.rand_like(out)
+        out.backward(grad)
+
+        out_masked = torch.gather(mt, dim, index)
+        out_masked.backward(grad)
+        self.assertEqual(x0.grad, mt.grad)
+
+    def test_gather_dim0(self):
+        self._test_gather((10, 10), (5, 10), 0)
+
+    def test_gather_dim1(self):
+        self._test_gather((10, 10, 5), (10, 5, 5), 1)
+
+    def test_gather_dim_neg(self):
+        self._test_gather((10, 10, 5), (10, 10, 2), -1)
+
+    def test_gather_ind_scalar(self):
+        self._test_gather((10,), (), 0)
+
+    def test_gather_x_scalar(self):
+        self._test_gather((), (2,), 0)
+
+    def test_gather_both_scalar(self):
+        self._test_gather((), (), 0)
 
     def test_mha_issue_41508(self):
         # https://github.com/pytorch/pytorch/issues/41508
