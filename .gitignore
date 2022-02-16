@@ -27,6 +27,7 @@ dist/
 docs/src/**/*
 docs/cpp/build
 docs/cpp/source/api
+docsrc/_build
 test/.coverage
 test/.hypothesis/
 test/cpp/api/mnist
