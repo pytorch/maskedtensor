@@ -16,7 +16,7 @@ kernelspec:
 
 +++
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/pytorch/maskedtensor/tree/main/docs/notebooks/nan_grad.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/nan_grad.ipynb)
 
 ```{code-cell} ipython3
 import torch
@@ -144,7 +144,7 @@ bgrad1
 
 +++
 
-PyTorch result:
+**PyTorch result**:
 
 ```{code-cell} ipython3
 x = torch.tensor([1., 1.], requires_grad=True)
@@ -158,7 +158,7 @@ loss.backward()
 x.grad # grad is [nan, 1], but expected [0, 1]
 ```
 
-MaskedTensor result:
+**MaskedTensor result**:
 
 ```{code-cell} ipython3
 x = torch.tensor([1., 1.], requires_grad=True)
@@ -172,8 +172,4 @@ loss = loss.sum()
 loss.backward()
 
 x.grad # grad is [nan, 1], but expected [0, 1]
-```
-
-```{code-cell} ipython3
-
 ```

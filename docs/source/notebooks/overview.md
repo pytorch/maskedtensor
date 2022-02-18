@@ -18,7 +18,7 @@ kernelspec:
 
 +++
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/pytorch/maskedtensor/tree/main/docs/notebooks/overview.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/overview.ipynb)
 
 ```{code-cell} ipython3
 import torch
