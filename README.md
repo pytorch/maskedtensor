@@ -1,17 +1,50 @@
-# maskedtensor
+# Github Pages for PyTorch MaskedTensor
+---
 
-## Installation
+gh-pages is the branch that holds the documentation for the main branch as well as the different releases. The main website is at https://pytorch.org/maskedtensor/
+
+###  Build instructions
+
+To rebuild the documentation:
 
 ```
-pip install maskedtensor
+cd docs
+pip install -r requirements.txt
+make html
 ```
 
-You need to run a recent nightly of PyTorch. You can get it on [the main website](https://pytorch.org/get-started/locally/).
+### Adding/syncing notebooks
 
-## Notebooks
+If you're adding a notebook to the documentation and would like to sync the notebooks (see below), run:
+```
+jupytext --set-formats ipynb,md:myst source/notebooks/the_notebook.ipynb
+```
 
-For an introduction and instructions on how to use MaskedTensors and what they are useful for see the [notebooks](https://github.com/cpuhrsch/maskedtensor/tree/main/notebooks) folder.
+To sync the ipynb and md notebooks, run:
+```
+jupytext --sync source/notebooks/*
+```
 
-## License
+### Updating documentation
 
-maskedtensor is licensed under BSD 3-Clause
+Currently, the documentation is not updated automatically and is periodically generated using commands like:
+
+```
+# build the docs, which will end up in _build/html
+# save them to a tmp intermediate directory
+cd docs
+pip install -r requirements.txt
+jupytext --sync source/notebooks/*
+make html
+cp -r docs/_build/html/* /path/to/tmp_dir
+
+# copy over the files to main
+git checkout gh-pages
+rm -rf main/*
+cp -r /path/to/tmp_dir/* main
+
+# push the files
+git add main
+git commit -m "generate new docs"
+git push -u origin
+```
