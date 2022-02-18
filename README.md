@@ -10,7 +10,7 @@ You need to run a recent nightly of PyTorch. You can get it on [the main website
 
 ## Notebooks
 
-For an introduction and instructions on how to use MaskedTensors and what they are useful for see the [notebooks](https://github.com/cpuhrsch/maskedtensor/tree/main/notebooks) folder.
+For an introduction and instructions on how to use MaskedTensors and what they are useful for see the [notebooks](https://github.com/cpuhrsch/maskedtensor/tree/main/docs/source/notebooks) folder.
 
 ## License
 

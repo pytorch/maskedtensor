@@ -31,18 +31,20 @@ Currently, the documentation is not updated automatically and is periodically ge
 
 ```
 # build the docs, which will end up in _build/html
+# save them to a tmp intermediate directory
 cd docs
 pip install -r requirements.txt
 jupytext --sync source/notebooks/*
 make html
+cp -r docs/_build/html/* /path/to/tmp_dir
 
 # copy over the files to main
 git checkout gh-pages
 rm -rf main/*
-cp -r docs/build/html/* main
+cp -r /path/to/tmp_dir/* main
 
 # push the files
 git add main
-git commit -m"generate new docs"
+git commit -m "generate new docs"
 git push -u origin
 ```
