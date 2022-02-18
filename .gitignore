@@ -24,6 +24,7 @@ aten/src/ATen/Config.h
 aten/src/ATen/cuda/CUDAConfig.h
 caffe2/cpp_test/
 dist/
+docs/
 docs/src/**/*
 docs/cpp/build
 docs/cpp/source/api
