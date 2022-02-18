@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.ifconfig',
     'sphinx_rtd_theme',
+    'myst_nb',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,8 +56,26 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    '_build',
+    'Thumbs.db',
+    '.DS_Store',
+    'notebooks/README.md',
+    'README.md',
+    'notebooks/*.md',
+]
 
+# Notebook cell execution timeout; defaults to 30.
+execution_timeout = 100
+
+# List of patterns, relative to source directory, that match notebook
+# files that will not be executed.
+execution_excludepatterns = []
+
+# -- Options for myst ----------------------------------------------
+jupyter_execute_notebooks = "force"
+execution_allow_errors = False
+execution_fail_on_error = True  # Requires https://github.com/executablebooks/MyST-NB/pull/296
 
 # -- Options for HTML output -------------------------------------------------
 

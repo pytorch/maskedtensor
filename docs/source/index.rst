@@ -10,7 +10,8 @@ Welcome to MaskedTensor's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   notebooks/overview
+   notebooks/nan_grad
 
 Indices and tables
 ==================
