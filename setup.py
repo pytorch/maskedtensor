@@ -20,13 +20,13 @@ def read(*names, **kwargs):
 version = "0.0.6"
 package_name = "maskedtensor"
 
-cwd = os.path.dirname(os.path.abspath(__file__))
-
 print("Building wheel {}-{}".format(package_name, version))
 
+requirements = requirements = [
+    "torch>=1.11,<1.12",
+]
 
 readme = open("README.md").read()
-
 
 class clean(distutils.command.clean.clean):
     def run(self):
@@ -63,6 +63,6 @@ setuptools.setup(
         "clean": clean,
         # "build_ext": BuildExtension.with_options(no_python_abi_suffix=True,),
     },
-    # install_requires=requirements,
+    install_requires=requirements,
     # ext_modules=get_extensions(),
 )

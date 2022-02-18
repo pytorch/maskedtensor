@@ -7,10 +7,11 @@ Welcome to MaskedTensor's documentation!
 ========================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Tutorials:
 
-
+   notebooks/overview
+   notebooks/nan_grad
 
 Indices and tables
 ==================
