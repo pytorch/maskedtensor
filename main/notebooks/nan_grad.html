@@ -84,7 +84,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="resolving-nan-grad">
 <h1>Resolving NaN Grad<a class="headerlink" href="#resolving-nan-grad" title="Permalink to this headline"></a></h1>
-<p><a class="reference external" href="https://github.com/pytorch/maskedtensor/tree/main/docs/notebooks/nan_grad.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/nan_grad.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
@@ -269,7 +269,7 @@ y.grad: None
 </section>
 <section id="when-using-mask-x-0-yields-nan-grad">
 <h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/4132">4132 - when using mask, x/0 yields NaN grad</a><a class="headerlink" href="#when-using-mask-x-0-yields-nan-grad" title="Permalink to this headline"></a></h3>
-<p>PyTorch result:</p>
+<p><strong>PyTorch result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -290,7 +290,7 @@ y.grad: None
 </div>
 </div>
 </div>
-<p>MaskedTensor result:</p>
+<p><strong>MaskedTensor result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
