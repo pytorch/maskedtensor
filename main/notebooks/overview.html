@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Resolving NaN Grad" href="nan_grad.html" />
-    <link rel="prev" title="Welcome to MaskedTensor’s documentation!" href="../index.html" /> 
+    <link rel="prev" title="MaskedTensor" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,7 +44,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview of MaskedTensors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basic-masking-semantics">Basic masking semantics</a></li>
@@ -217,32 +217,32 @@ masked_tensor(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[ 17.,  13.,  -1.],
-        [ -6.,   4.,   8.],
-        [ 10.,  13.,   3.],
-        [  0.,   5.,  -5.],
-        [ -6., -12.,   6.],
-        [ 18.,  -2.,  10.],
-        [ -7.,  -2.,   0.],
-        [ -8., -12.,   1.]])
-tensor([[False, False, False],
-        [ True,  True,  True],
-        [False,  True, False],
-        [ True,  True,  True],
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[ -2.,   8.,  21.],
+        [  6., -11.,  -5.],
+        [ -7.,  14.,   2.],
+        [  1.,  -6.,   1.],
+        [-12.,  -4.,   0.],
+        [  0.,   0., -11.],
+        [  1.,   5.,   6.],
+        [  4.,   8.,  -5.]])
+tensor([[False,  True,  True],
+        [False,  True,  True],
         [ True,  True, False],
         [ True, False,  True],
-        [ True, False, False],
-        [ True,  True,  True]])
+        [False,  True, False],
+        [ True,  True, False],
+        [False,  True, False],
+        [False, False,  True]])
 masked_tensor(
   [
-    [      --,       --,       --],
-    [ -6.0000,   4.0000,   8.0000],
-    [      --,  13.0000,       --],
-    [  0.0000,   5.0000,  -5.0000],
-    [ -6.0000, -12.0000,       --],
-    [ 18.0000,       --,  10.0000],
-    [ -7.0000,       --,       --],
-    [ -8.0000, -12.0000,   1.0000]
+    [      --,   8.0000,  21.0000],
+    [      --, -11.0000,  -5.0000],
+    [ -7.0000,  14.0000,       --],
+    [  1.0000,       --,   1.0000],
+    [      --,  -4.0000,       --],
+    [  0.0000,   0.0000,       --],
+    [      --,   5.0000,       --],
+    [      --,       --,  -5.0000]
   ]
 )
 </pre></div>
@@ -262,19 +262,19 @@ masked_tensor(
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
-  [      --,   6.0000,  13.0000,   0.0000, -18.0000,  28.0000,  -7.0000, -19.0000]
+  [ 29.0000, -16.0000,   7.0000,   2.0000,  -4.0000,   0.0000,   5.0000,  -5.0000]
 )
 masked_tensor(
-  [      --,   2.0000,  13.0000,   0.0000,  -9.0000,  14.0000,  -7.0000,  -6.3333]
+  [ 14.5000,  -8.0000,   3.5000,   1.0000,  -4.0000,   0.0000,   5.0000,  -5.0000]
 )
 masked_tensor(
-  [       --, -192.0000,  13.0000,  -0.0000,  72.0000, 180.0000,  -7.0000,  96.0000]
+  [168.0000,  55.0000, -98.0000,   1.0000,  -4.0000,   0.0000,   5.0000,  -5.0000]
 )
 masked_tensor(
-  [      --,  -6.0000,  13.0000,  -5.0000, -12.0000,  10.0000,  -7.0000, -12.0000]
+  [  8.0000, -11.0000,  -7.0000,   1.0000,  -4.0000,   0.0000,   5.0000,  -5.0000]
 )
 masked_tensor(
-  [      --,   8.0000,  13.0000,   5.0000,  -6.0000,  18.0000,  -7.0000,   1.0000]
+  [ 21.0000,  -5.0000,  14.0000,   1.0000,  -4.0000,   0.0000,   5.0000,  -5.0000]
 )
 </pre></div>
 </div>
@@ -339,32 +339,32 @@ npm0.sum(0) + npm1.sum(0):
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [  0.1880,  -1.7757,   2.3719],
-      [      --,       --,  -2.6673],
-      [ -0.7934,       --,   0.3209],
-      [ -7.3836,  -5.5692,   2.2297],
-      [      --,   1.8978,   1.1509]
+      [      --,       --,   3.7374],
+      [ -0.7823,       --,  -2.7896],
+      [      --,  -3.7006,  -3.1877],
+      [ -1.9477,       --,   9.4375],
+      [      --,       --,       --]
     ],
     [
-      [      --,       --,       --],
-      [      --,       --,  -2.0482],
-      [ -5.3248,   8.6286,       --],
-      [  2.4629,       --,       --],
-      [  5.6981,       --,       --]
+      [      --,  -0.9693,  -4.7567],
+      [      --,       --,  -0.0910],
+      [      --,   4.0244,       --],
+      [      --,  -1.1483,   5.9897],
+      [ -6.4715,       --,   6.6507]
     ],
     [
-      [      --,       --,       --],
-      [      --,  -2.9749,   0.8193],
-      [  0.0840,       --,  -2.9546],
-      [      --,   0.9600,       --],
-      [      --,   2.9441,       --]
+      [ -2.7378,   1.3096,  -1.8739],
+      [      --,       --,  -1.4943],
+      [ -3.2081,       --,       --],
+      [ 11.0149,       --,   8.7485],
+      [      --,       --,  -3.0937]
     ],
     [
-      [      --,       --,       --],
-      [  3.4659,       --,   2.6436],
-      [      --,   3.4272,   1.5236],
-      [ -0.1304,       --,       --],
-      [  8.4237,       --,   3.8098]
+      [      --,  -5.7733,       --],
+      [  6.0305,  -0.1201,  -1.9697],
+      [  5.5723,   2.9670,       --],
+      [      --,       --,   2.2725],
+      [  2.5047,   4.6743,       --]
     ]
   ]
 )
@@ -384,33 +384,33 @@ npm0.sum(0) + npm1.sum(0):
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [  0.1880,  -1.7757,   2.3719],
-    [      --,       --,  -2.6673],
-    [ -0.7934,       --,   0.3209],
-    [ -7.3836,  -5.5692,   2.2297],
-    [      --,   1.8978,   1.1509]
+    [      --,       --,   3.7374],
+    [ -0.7823,       --,  -2.7896],
+    [      --,  -3.7006,  -3.1877],
+    [ -1.9477,       --,   9.4375],
+    [      --,       --,       --]
   ]
 )
 masked_tensor(
   [
     [
-      [  0.1880,  -1.7757,   2.3719],
-      [      --,       --,  -2.6673],
-      [ -0.7934,       --,   0.3209],
-      [ -7.3836,  -5.5692,   2.2297],
-      [      --,   1.8978,   1.1509]
+      [      --,       --,   3.7374],
+      [ -0.7823,       --,  -2.7896],
+      [      --,  -3.7006,  -3.1877],
+      [ -1.9477,       --,   9.4375],
+      [      --,       --,       --]
     ],
     [
-      [      --,       --,       --],
-      [      --,  -2.9749,   0.8193],
-      [  0.0840,       --,  -2.9546],
-      [      --,   0.9600,       --],
-      [      --,   2.9441,       --]
+      [ -2.7378,   1.3096,  -1.8739],
+      [      --,       --,  -1.4943],
+      [ -3.2081,       --,       --],
+      [ 11.0149,       --,   8.7485],
+      [      --,       --,  -3.0937]
     ]
   ]
 )
 masked_tensor(
-  [  0.1880,  -1.7757,   2.3719,  -2.6673,  -0.7934,   0.3209,  -7.3836,  -5.5692,   2.2297,   1.8978,   1.1509,  -2.0482,  -5.3248,   8.6286,   2.4629,   5.6981,  -2.9749,   0.8193,   0.0840,  -2.9546,   0.9600,   2.9441,   3.4659,   2.6436,   3.4272,   1.5236,  -0.1304,   8.4237,   3.8098]
+  [  3.7374,  -0.7823,  -2.7896,  -3.7006,  -3.1877,  -1.9477,   9.4375,  -0.9693,  -4.7567,  -0.0910,   4.0244,  -1.1483,   5.9897,  -6.4715,   6.6507,  -2.7378,   1.3096,  -1.8739,  -1.4943,  -3.2081,  11.0149,   8.7485,  -3.0937,  -5.7733,   6.0305,  -0.1201,  -1.9697,   5.5723,   2.9670,   2.2725,   2.5047,   4.6743]
 )
 </pre></div>
 </div>
@@ -915,7 +915,7 @@ masked_tensor(--, False)
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to MaskedTensor’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="MaskedTensor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="nan_grad.html" class="btn btn-neutral float-right" title="Resolving NaN Grad" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
