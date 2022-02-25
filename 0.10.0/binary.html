@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary Operations &mdash; MaskedTensor main documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="_static/mystnb.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script>let toggleHintShow = 'Click to show';</script>
+        <script>let toggleHintHide = 'Click to hide';</script>
+        <script>let toggleOpenOnPrint = 'true';</script>
+        <script src="_static/togglebutton.js"></script>
+        <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Reductions" href="reductions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  <a href="index.html" class="icon icon-home"> MaskedTensor
+  </a>
+    <div class="version">
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">0.10.0 &#x25BC</a>
+    </div>
+    
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/overview.html">Overview of MaskedTensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/nan_grad.html">Resolving NaN Grad</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="passthrough.html">Pass through functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reductions.html">Reductions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Binary Operations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MaskedTensor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Binary Operations</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/pytorch/maskedtensor/blob/main/docs/source/binary.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="binary-operations">
+<h1>Binary Operations<a class="headerlink" href="#binary-operations" title="Permalink to this headline"></a></h1>
+<p>As you may have seen in the tutorial, <code class="xref py py-mod docutils literal notranslate"><span class="pre">MaskedTensor</span></code> also has binary operations implemented with the caveat
+that the masks in two masked tensors must match or else an error will be raised. As noted in the error, if you
+need support for a particular operator or have proposed semantics for how they should be behave instead, please open
+an issue on Github. For now, we have decided to go with the most conservative implementation to ensure that users
+know exactly what is going on and are being intentional about their decisions with masked semantics.</p>
+<p>The available binary operators are:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></p></td>
+<td><p>Adds <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>, scaled by <code class="xref py py-attr docutils literal notranslate"><span class="pre">alpha</span></code>, to <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">atan2</span></code></p></td>
+<td><p>Element-wise arctangent of <span class="math notranslate nohighlight">\(\text{input}_{i} / \text{other}_{i}\)</span> with consideration of the quadrant.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">arctan2</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.atan2()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitwise_and</span></code></p></td>
+<td><p>Computes the bitwise AND of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitwise_or</span></code></p></td>
+<td><p>Computes the bitwise OR of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitwise_xor</span></code></p></td>
+<td><p>Computes the bitwise XOR of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitwise_left_shift</span></code></p></td>
+<td><p>Computes the left arithmetic shift of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> by <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code> bits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bitwise_right_shift</span></code></p></td>
+<td><p>Computes the right arithmetic shift of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> by <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code> bits.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">div</span></code></p></td>
+<td><p>Divides each element of the input <code class="docutils literal notranslate"><span class="pre">input</span></code> by the corresponding element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">divide</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.div()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">floor_divide</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmod</span></code></p></td>
+<td><p>Applies C++'s <a class="reference external" href="https://en.cppreference.com/w/cpp/numeric/math/fmod">std::fmod</a> entrywise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">logaddexp</span></code></p></td>
+<td><p>Logarithm of the sum of exponentiations of the inputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">logaddexp2</span></code></p></td>
+<td><p>Logarithm of the sum of exponentiations of the inputs in base-2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mul</span></code></p></td>
+<td><p>Multiplies <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> by <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">multiply</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.mul()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nextafter</span></code></p></td>
+<td><p>Return the next floating-point value after <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> towards <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>, elementwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">remainder</span></code></p></td>
+<td><p>Computes <a class="reference external" href="https://docs.python.org/3/reference/expressions.html#binary-arithmetic-operations">Python's modulus operation</a> entrywise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sub</span></code></p></td>
+<td><p>Subtracts <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>, scaled by <code class="xref py py-attr docutils literal notranslate"><span class="pre">alpha</span></code>, from <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">subtract</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.sub()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">true_divide</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.div()</span></code> with <code class="docutils literal notranslate"><span class="pre">rounding_mode=None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eq</span></code></p></td>
+<td><p>Computes element-wise equality</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ne</span></code></p></td>
+<td><p>Computes <span class="math notranslate nohighlight">\(\text{input} \neq \text{other}\)</span> element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">le</span></code></p></td>
+<td><p>Computes <span class="math notranslate nohighlight">\(\text{input} \leq \text{other}\)</span> element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ge</span></code></p></td>
+<td><p>Computes <span class="math notranslate nohighlight">\(\text{input} \geq \text{other}\)</span> element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">greater</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.gt()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">greater_equal</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.ge()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gt</span></code></p></td>
+<td><p>Computes <span class="math notranslate nohighlight">\(\text{input} &gt; \text{other}\)</span> element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">less_equal</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.le()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lt</span></code></p></td>
+<td><p>Computes <span class="math notranslate nohighlight">\(\text{input} &lt; \text{other}\)</span> element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">less</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.lt()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum</span></code></p></td>
+<td><p>Computes the element-wise maximum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum</span></code></p></td>
+<td><p>Computes the element-wise minimum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmax</span></code></p></td>
+<td><p>Computes the element-wise maximum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmin</span></code></p></td>
+<td><p>Computes the element-wise minimum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">not_equal</span></code></p></td>
+<td><p>Alias for <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.ne()</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The available inplace binary operators are all of the above <strong>except</strong>:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">logaddexp</span></code></p></td>
+<td><p>Logarithm of the sum of exponentiations of the inputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">logaddexp2</span></code></p></td>
+<td><p>Logarithm of the sum of exponentiations of the inputs in base-2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">equal</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if two tensors have the same size and elements, <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmin</span></code></p></td>
+<td><p>Computes the element-wise minimum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum</span></code></p></td>
+<td><p>Computes the element-wise minimum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fmax</span></code></p></td>
+<td><p>Computes the element-wise maximum of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+<p>As always, if you have any feature requests, please file an issue on Github.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reductions.html" class="btn btn-neutral float-left" title="Reductions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, PyTorch.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

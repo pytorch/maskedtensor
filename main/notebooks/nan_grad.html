@@ -25,6 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pass through functions" href="../passthrough.html" />
     <link rel="prev" title="Overview of MaskedTensors" href="overview.html" /> 
 </head>
 
@@ -36,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">0.1.0 &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gita674e87) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -48,7 +49,11 @@
 </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview of MaskedTensors</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Resolving NaN Grad</a><ul>
@@ -61,6 +66,12 @@
 </li>
 </ul>
 </li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../passthrough.html">Pass through functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reductions.html">Reductions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../binary.html">Binary Operations</a></li>
 </ul>
 
         </div>
@@ -110,7 +121,9 @@
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://test.pypi.org/simple/
 Requirement already satisfied: maskedtensor in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (0.1.0)
-Requirement already satisfied: torch&lt;1.12,&gt;=1.11 in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from maskedtensor) (1.11.0+cpu)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: torch&lt;1.12,&gt;=1.11 in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from maskedtensor) (1.11.0+cpu)
 Requirement already satisfied: typing-extensions in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from torch&lt;1.12,&gt;=1.11-&gt;maskedtensor) (3.10.0.2)
 </pre></div>
 </div>
@@ -329,6 +342,7 @@ y.grad: None
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="overview.html" class="btn btn-neutral float-left" title="Overview of MaskedTensors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../passthrough.html" class="btn btn-neutral float-right" title="Pass through functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
