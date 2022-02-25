@@ -22,7 +22,7 @@ project = 'MaskedTensor'
 copyright = '2022, PyTorch'
 author = 'PyTorch'
 
-version = "0.1.0"
+version = "0.10.0"
 release = "main"
 
 
