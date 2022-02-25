@@ -6,7 +6,7 @@
 MaskedTensor
 ========================================
 
-This library is a part of the `PyTorch <http://pytorch.org/>`_ project. The purpose of :mod:`maskedtensor` is to serve as an extension to `torch.tensor`, especially in cases of:
+This library is a part of the `PyTorch <http://pytorch.org/>`_ project. The purpose of :mod:`maskedtensor` is to serve as an extension to `torch.Tensor`, especially in cases of:
 
 * Using any masked semantics
 * Differentiation between 0 and NaN gradients
@@ -18,7 +18,21 @@ Please note that this library is very much in its early development stages. The 
 
 .. toctree::
    :maxdepth: 1
+   :caption: Installation
+
+   install
+
+.. toctree::
+   :maxdepth: 1
    :caption: Tutorials:
 
    notebooks/overview
    notebooks/nan_grad
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Python API
+
+   passthrough
+   reductions
+   binary
