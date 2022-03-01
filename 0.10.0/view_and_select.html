@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View and select functions &mdash; MaskedTensor main documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="_static/mystnb.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script>let toggleHintShow = 'Click to show';</script>
+        <script>let toggleHintHide = 'Click to hide';</script>
+        <script>let toggleOpenOnPrint = 'true';</script>
+        <script src="_static/togglebutton.js"></script>
+        <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Reductions" href="reductions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  <a href="index.html" class="icon icon-home"> MaskedTensor
+  </a>
+    <div class="version">
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">0.10.0 &#x25BC</a>
+    </div>
+    
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/overview.html">Overview of MaskedTensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/nan_grad.html">Resolving NaN Grad</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="unary.html">Unary Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="binary.html">Binary Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reductions.html">Reductions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">View and select functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MaskedTensor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>View and select functions</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/pytorch/maskedtensor/blob/main/docs/source/view_and_select.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="view-and-select-functions">
+<h1>View and select functions<a class="headerlink" href="#view-and-select-functions" title="Permalink to this headline"></a></h1>
+<p>In 0.11, we’ve included a number of different view and select functions – under the hood, these are implemented
+as pass through functions – i.e. functions that apply the operator to both the mask and the data.</p>
+<p>By way of example, consider <code class="xref py py-mod docutils literal notranslate"><span class="pre">select</span></code>; this operation can be applied to both the data
+and the mask of a <code class="xref py py-mod docutils literal notranslate"><span class="pre">MaskedTensor</span></code>, and the result will then be wrapped into a new <code class="xref py py-mod docutils literal notranslate"><span class="pre">MaskedTensor</span></code>.</p>
+<p>A quick example of this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span>
+<span class="go">        [True, False, False, True],</span>
+<span class="go">        [False, True, False, False],</span>
+<span class="go">        [True, True, True, True]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mt</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">tensor([4., 5., 6., 7.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">tensor([False,  True, False, False])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mt</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">masked_tensor(</span>
+<span class="go">[      --,   5.0000,       --,       --]</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<p>Below is a list of the ops that are currently supported:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">atleast_1d</span></code></p></td>
+<td><p>Returns a 1-dimensional view of each input tensor with zero dimensions.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">broadcast_tensors</span></code></p></td>
+<td><p>Broadcasts the given tensors according to <span class="xref std std-ref">broadcasting-semantics</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">broadcast_to</span></code></p></td>
+<td><p>Broadcasts <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> to the shape <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cat</span></code></p></td>
+<td><p>Concatenates the given sequence of <code class="xref py py-attr docutils literal notranslate"><span class="pre">seq</span></code> tensors in the given dimension.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk</span></code></p></td>
+<td><p>Attempts to split a tensor into the specified number of chunks.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">column_stack</span></code></p></td>
+<td><p>Creates a new tensor by horizontally stacking the tensors in <code class="xref py py-attr docutils literal notranslate"><span class="pre">tensors</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dsplit</span></code></p></td>
+<td><p>Splits <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>, a tensor with three or more dimensions, into multiple tensors depthwise according to <code class="xref py py-attr docutils literal notranslate"><span class="pre">indices_or_sections</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></p></td>
+<td><p>Flattens <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> by reshaping it into a one-dimensional tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hsplit</span></code></p></td>
+<td><p>Splits <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>, a tensor with one or more dimensions, into multiple tensors horizontally according to <code class="xref py py-attr docutils literal notranslate"><span class="pre">indices_or_sections</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hstack</span></code></p></td>
+<td><p>Stack tensors in sequence horizontally (column wise).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">kron</span></code></p></td>
+<td><p>Computes the Kronecker product, denoted by <span class="math notranslate nohighlight">\(\otimes\)</span>, of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">meshgrid</span></code></p></td>
+<td><p>Creates grids of coordinates specified by the 1D inputs in <cite>attr</cite>:tensors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">narrow</span></code></p></td>
+<td><p>Returns a new tensor that is a narrowed version of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ravel</span></code></p></td>
+<td><p>Return a contiguous flattened tensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">select</span></code></p></td>
+<td><p>Slices the <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> tensor along the selected dimension at the given index.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></p></td>
+<td><p>Splits the tensor into chunks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">t</span></code></p></td>
+<td><p>Expects <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> to be &lt;= 2-D tensor and transposes dimensions 0 and 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transpose</span></code></p></td>
+<td><p>Returns a tensor that is a transposed version of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">vsplit</span></code></p></td>
+<td><p>Splits <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>, a tensor with two or more dimensions, into multiple tensors vertically according to <code class="xref py py-attr docutils literal notranslate"><span class="pre">indices_or_sections</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">vstack</span></code></p></td>
+<td><p>Stack tensors in sequence vertically (row wise).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tensor.expand</span></code></p></td>
+<td><p>Returns a new view of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">self</span></code> tensor with singleton dimensions expanded to a larger size.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tensor.expand_as</span></code></p></td>
+<td><p>Expand this tensor to the same size as <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tensor.reshape</span></code></p></td>
+<td><p>Returns a tensor with the same data and number of elements as <code class="xref py py-attr docutils literal notranslate"><span class="pre">self</span></code> but with the specified shape.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tensor.reshape_as</span></code></p></td>
+<td><p>Returns this tensor as the same shape as <code class="xref py py-attr docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tensor.view</span></code></p></td>
+<td><p>Returns a new tensor with the same data as the <code class="xref py py-attr docutils literal notranslate"><span class="pre">self</span></code> tensor but of a different <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reductions.html" class="btn btn-neutral float-left" title="Reductions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, PyTorch.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <style>
+    .wy-nav-content { max-width: 1200px !important; }
+  </style>
+
+
+</body>
+</html>

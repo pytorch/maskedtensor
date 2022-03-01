@@ -68,9 +68,10 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Python API</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../passthrough.html">Pass through functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reductions.html">Reductions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../unary.html">Unary Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../binary.html">Binary Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reductions.html">Reductions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../view_and_select.html">View and select functions</a></li>
 </ul>
 
         </div>
@@ -120,9 +121,7 @@
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://test.pypi.org/simple/
 Requirement already satisfied: maskedtensor in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (0.1.0)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: torch&lt;1.12,&gt;=1.11 in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from maskedtensor) (1.11.0+cpu)
+Requirement already satisfied: torch&lt;1.12,&gt;=1.11 in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from maskedtensor) (1.11.0+cpu)
 Requirement already satisfied: typing-extensions in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from torch&lt;1.12,&gt;=1.11-&gt;maskedtensor) (3.10.0.2)
 </pre></div>
 </div>
@@ -173,7 +172,9 @@ masked_tensor(
 masked_tensor(
   [  0.0000,   2.0000,       --,   6.0000,       --]
 )
-Input masks must match. If you need support for this, please open an issue on Github.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Input masks must match. If you need support for this, please open an issue on Github.
 </pre></div>
 </div>
 </div>
@@ -234,32 +235,32 @@ masked_tensor(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[  9.,  -3.,  -3.],
-        [ -1.,  12., -20.],
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[ 23.,  -7.,   4.],
+        [  6.,  15.,   2.],
+        [ 12.,  -7.,  -9.],
+        [ 18.,   3.,  -7.],
+        [  0.,  -8.,  12.],
         [ -1.,   3.,  -2.],
-        [ 23.,  20., -14.],
-        [ -1.,   6.,   4.],
-        [-20.,  14.,   7.],
-        [ -6.,   7.,   2.],
-        [ 17.,  -4., -15.]])
+        [-17.,   9.,  19.],
+        [ -2.,  -5.,  -9.]])
 tensor([[ True,  True,  True],
-        [ True,  True, False],
-        [ True,  True,  True],
-        [ True, False,  True],
-        [ True,  True, False],
         [False, False,  True],
+        [ True, False, False],
         [False, False, False],
+        [False,  True, False],
+        [ True,  True, False],
+        [ True,  True, False],
         [ True,  True, False]])
 masked_tensor(
   [
-    [  9.0000,  -3.0000,  -3.0000],
-    [ -1.0000,  12.0000,       --],
-    [ -1.0000,   3.0000,  -2.0000],
-    [ 23.0000,       --, -14.0000],
-    [ -1.0000,   6.0000,       --],
-    [      --,       --,   7.0000],
+    [ 23.0000,  -7.0000,   4.0000],
+    [      --,       --,   2.0000],
+    [ 12.0000,       --,       --],
     [      --,       --,       --],
-    [ 17.0000,  -4.0000,       --]
+    [      --,  -8.0000,       --],
+    [ -1.0000,   3.0000,       --],
+    [-17.0000,   9.0000,       --],
+    [ -2.0000,  -5.0000,       --]
   ]
 )
 </pre></div>
@@ -279,19 +280,19 @@ masked_tensor(
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
-  [  3.0000,  11.0000,   0.0000,   9.0000,   5.0000,   7.0000,       --,  13.0000]
+  [ 20.0000,   2.0000,  12.0000,       --,  -8.0000,   2.0000,  -8.0000,  -7.0000]
 )
 masked_tensor(
-  [  1.0000,   5.5000,   0.0000,   4.5000,   2.5000,   7.0000,       --,   6.5000]
+  [  6.6667,   2.0000,  12.0000,       --,  -8.0000,   1.0000,  -4.0000,  -3.5000]
 )
 masked_tensor(
-  [ 81.0000, -12.0000,   6.0000, -322.0000,  -6.0000,   7.0000,        --, -68.0000]
+  [-644.0000,   2.0000,  12.0000,        --,  -8.0000,  -3.0000, -153.0000,  10.0000]
 )
 masked_tensor(
-  [ -3.0000,  -1.0000,  -2.0000, -14.0000,  -1.0000,   7.0000,       --,  -4.0000]
+  [ -7.0000,   2.0000,  12.0000,       --,  -8.0000,  -1.0000, -17.0000,  -5.0000]
 )
 masked_tensor(
-  [  9.0000,  12.0000,   3.0000,  23.0000,   6.0000,   7.0000,       --,  17.0000]
+  [ 23.0000,   2.0000,  12.0000,       --,  -8.0000,   3.0000,   9.0000,  -2.0000]
 )
 </pre></div>
 </div>
@@ -356,32 +357,32 @@ npm0.sum(0) + npm1.sum(0):
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [  2.4948,       --,       --],
       [      --,       --,       --],
-      [      --,  -3.7186,   3.1452],
-      [  7.4720,       --,       --],
-      [  7.7885,       --,   2.4131]
+      [      --,       --,  -0.4939],
+      [  5.0774,   4.5303,       --],
+      [      --,       --,   9.0457],
+      [      --,       --,  -6.5870]
     ],
     [
-      [  3.0052,       --,       --],
-      [  0.6765,       --,   4.9893],
-      [ -4.6235,   0.6021,       --],
-      [      --,  -1.2958,   0.0749],
-      [      --,  -2.5734,       --]
+      [ -3.2369,  -2.4537,       --],
+      [ -0.6705,       --,  -1.8812],
+      [  1.6282,       --,   2.4057],
+      [ -2.8567,       --,       --],
+      [  2.1481,   0.4290,       --]
     ],
     [
-      [ -9.5062,       --, -10.1827],
-      [ -2.1268,       --,       --],
-      [      --,       --,   0.7273],
-      [ -9.4422,  -0.4090,       --],
-      [ -0.0079,   4.5141,   0.9048]
-    ],
-    [
-      [  4.1250,   4.4891,       --],
-      [  0.9642,       --,  -0.5421],
-      [  3.1648,       --,       --],
+      [      --,  -0.7304,       --],
+      [      --,       --,   2.8134],
+      [      --,       --,   3.3103],
       [      --,       --,       --],
-      [  2.9638,       --,  -0.7187]
+      [ -6.0714,       --,       --]
+    ],
+    [
+      [      --,       --,   3.8925],
+      [ -0.9673,   2.5566,   3.4984],
+      [ -5.0473,       --,   0.1633],
+      [  0.3516,       --,       --],
+      [      --,   1.4220,       --]
     ]
   ]
 )
@@ -401,33 +402,35 @@ npm0.sum(0) + npm1.sum(0):
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [  2.4948,       --,       --],
     [      --,       --,       --],
-    [      --,  -3.7186,   3.1452],
-    [  7.4720,       --,       --],
-    [  7.7885,       --,   2.4131]
+    [      --,       --,  -0.4939],
+    [  5.0774,   4.5303,       --],
+    [      --,       --,   9.0457],
+    [      --,       --,  -6.5870]
   ]
 )
-masked_tensor(
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [  2.4948,       --,       --],
       [      --,       --,       --],
-      [      --,  -3.7186,   3.1452],
-      [  7.4720,       --,       --],
-      [  7.7885,       --,   2.4131]
+      [      --,       --,  -0.4939],
+      [  5.0774,   4.5303,       --],
+      [      --,       --,   9.0457],
+      [      --,       --,  -6.5870]
     ],
     [
-      [ -9.5062,       --, -10.1827],
-      [ -2.1268,       --,       --],
-      [      --,       --,   0.7273],
-      [ -9.4422,  -0.4090,       --],
-      [ -0.0079,   4.5141,   0.9048]
+      [      --,  -0.7304,       --],
+      [      --,       --,   2.8134],
+      [      --,       --,   3.3103],
+      [      --,       --,       --],
+      [ -6.0714,       --,       --]
     ]
   ]
 )
 masked_tensor(
-  [  2.4948,  -3.7186,   3.1452,   7.4720,   7.7885,   2.4131,   3.0052,   0.6765,   4.9893,  -4.6235,   0.6021,  -1.2958,   0.0749,  -2.5734,  -9.5062, -10.1827,  -2.1268,   0.7273,  -9.4422,  -0.4090,  -0.0079,   4.5141,   0.9048,   4.1250,   4.4891,   0.9642,  -0.5421,   3.1648,   2.9638,  -0.7187]
+  [ -0.4939,   5.0774,   4.5303,   9.0457,  -6.5870,  -3.2369,  -2.4537,  -0.6705,  -1.8812,   1.6282,   2.4057,  -2.8567,   2.1481,   0.4290,  -0.7304,   2.8134,   3.3103,  -6.0714,   3.8925,  -0.9673,   2.5566,   3.4984,  -5.0473,   0.1633,   0.3516,   1.4220]
 )
 </pre></div>
 </div>
@@ -956,7 +959,13 @@ masked_tensor(--, False)
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+   
+
+  <style>
+    .wy-nav-content { max-width: 1200px !important; }
+  </style>
+
 
 </body>
 </html>
