@@ -17,7 +17,7 @@ def read(*names, **kwargs):
         return fp.read()
 
 
-version = "0.0.6"
+version = "0.10.0"
 package_name = "maskedtensor"
 
 print("Building wheel {}-{}".format(package_name, version))
