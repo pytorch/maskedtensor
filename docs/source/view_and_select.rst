@@ -1,14 +1,15 @@
 .. currentmodule:: torch
 
-Pass through functions
-============
+View and select functions
+=========================
 
-Pass through functions are simply functions that should be applied to both the mask and the data. 
+In 0.11, we've included a number of different view and select functions -- under the hood, these are implemented
+as pass through functions -- i.e. functions that apply the operator to both the mask and the data. 
 
 By way of example, consider :mod:`select`; this operation can be applied to both the data
 and the mask of a :mod:`MaskedTensor`, and the result will then be wrapped into a new :mod:`MaskedTensor`. 
 
-A quick example of this: 
+A quick example of this:
 
 ::
 
@@ -27,23 +28,34 @@ A quick example of this:
     [      --,   5.0000,       --,       --]
     )
 
-Below is a list of the ops that are currently implemented as pass through functions.
+Below is a list of the ops that are currently supported:
 
 .. autosummary::
     :toctree: generated
     :nosignatures:
 
-    ops.aten.cat
-    ops.aten.expand
-    ops.aten.index
-    ops.aten.slice
-    ops.aten.slice_backward
-    ops.aten.select
-    ops.aten.select_backward
-    ops.aten.split
-    ops.aten.t
-    ops.aten.transpose
-    ops.aten.view
-    ops.aten._reshape_alias
-    ops.aten._unsafe_view
-
+    atleast_1d
+    broadcast_tensors
+    broadcast_to
+    cat
+    chunk
+    column_stack
+    dsplit
+    flatten
+    hsplit
+    hstack
+    kron
+    meshgrid
+    narrow
+    ravel
+    select
+    split
+    t
+    transpose
+    vsplit
+    vstack
+    Tensor.expand
+    Tensor.expand_as
+    Tensor.reshape
+    Tensor.reshape_as
+    Tensor.view

@@ -33,6 +33,7 @@ Please note that this library is very much in its early development stages. The 
    :maxdepth: 1
    :caption: Python API
 
-   passthrough
-   reductions
+   unary
    binary
+   reductions
+   view_and_select

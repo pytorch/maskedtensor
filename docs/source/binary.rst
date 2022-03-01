@@ -1,7 +1,7 @@
 .. currentmodule:: torch
 
 Binary Operations
-============
+=================
 
 As you may have seen in the tutorial, :mod:`MaskedTensor` also has binary operations implemented with the caveat 
 that the masks in two masked tensors must match or else an error will be raised. As noted in the error, if you 
