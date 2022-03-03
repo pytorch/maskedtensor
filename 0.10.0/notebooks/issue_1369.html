@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Efficiency of writing “sparse” semantics for Adagrad &mdash; MaskedTensor main documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script>let toggleHintShow = 'Click to show';</script>
+        <script>let toggleHintHide = 'Click to hide';</script>
+        <script>let toggleOpenOnPrint = 'true';</script>
+        <script src="../_static/togglebutton.js"></script>
+        <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Implemented missing torch.nan* operators" href="nan_operators.html" />
+    <link rel="prev" title="Safe Softmax" href="safe_softmax.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  <a href="../index.html" class="icon icon-home"> MaskedTensor
+  </a>
+    <div class="version">
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">0.10.0 &#x25BC</a>
+    </div>
+    
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview of MaskedTensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nan_grad.html">Resolving NaN Grad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safe_softmax.html">Safe Softmax</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Efficiency of writing “sparse” semantics for Adagrad</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code">Code</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nan_operators.html">Implemented missing torch.nan* operators</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../unary.html">Unary Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../binary.html">Binary Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reductions.html">Reductions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../view_and_select.html">View and select functions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MaskedTensor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Efficiency of writing “sparse” semantics for Adagrad</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/pytorch/maskedtensor/blob/main/docs/source/notebooks/issue_1369.ipynb" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="efficiency-of-writing-sparse-semantics-for-adagrad">
+<h1>Efficiency of writing “sparse” semantics for Adagrad<a class="headerlink" href="#efficiency-of-writing-sparse-semantics-for-adagrad" title="Permalink to this headline"></a></h1>
+<p><a class="reference external" href="https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/issue_1369.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline"></a></h2>
+<p><a class="reference external" href="https://github.com/pytorch/pytorch/issues/1369">Issue 1369</a> discussed the additional lines of code that were introduce while writing “sparse” semantics for Adagrad. But really the code doesn’t use sparsity as a compression and optimization technique, it wants to use masked semantics. We worked around this by introducing one-off semantics and operators that encode this behavior while forcing users to be aware of storage details such as indices and values. Let’s look at the current implementation of <a class="reference external" href="https://github.com/pytorch/pytorch/blob/master/torch/optim/adagrad.py">Adagrad</a> <a class="reference external" href="https://github.com/pytorch/pytorch/blob/6c2f235d368b697072699e5ca9485fd97d0b9bcc/torch/optim/_functional.py#L16-L51">(functional)</a> to illustrate that.</p>
+<p>In particular we’ll point out when sparsity is used as a semantic extension, i.e. unspecified values are not zero and when it is just used to compress zeros. We’ll also compare and contrast this with equivalent code written using MaskedTensor. In the end the code snippets are repeat without additional comments to show the difference in brevity.</p>
+</section>
+<section id="code">
+<h2>Code<a class="headerlink" href="#code" title="Permalink to this headline"></a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="k">if</span> <span class="s2">&quot;1.11.0&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">:</span>
+    <span class="o">!</span>pip uninstall --y torch
+    <span class="o">!</span>pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import factory function</span>
+<span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">masked_tensor</span>
+<span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">as_masked_tensor</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_make_sparse</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad_indices</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">grad_indices</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">values</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse_coo_tensor</span><span class="p">(</span><span class="n">grad_indices</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+<span class="c1"># We don&#39;t support sparse gradients</span>
+<span class="n">param</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                  <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sparse_coo_tensor</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">state_sum</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="c1"># initial value for state sum</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;grad:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">grad</span><span class="o">.</span><span class="n">to_dense</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;state_sum:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">state_sum</span><span class="p">)</span>
+
+<span class="c1"># Some hyperparameters</span>
+<span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-10</span>
+<span class="n">clr</span> <span class="o">=</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>param:
+ tensor([[0., 1., 2., 3.],
+        [4., 5., 6., 7.]])
+grad:
+ tensor([[0., 0., 3., 0.],
+        [4., 0., 5., 0.]])
+state_sum:
+ tensor([[0.5000, 0.5000, 0.5000, 0.5000],
+        [0.5000, 0.5000, 0.5000, 0.5000]])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">state_sum</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="c1"># initial value for state sum</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">state_sum</span><span class="p">)</span>
+
+<span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">coalesce</span><span class="p">()</span>  <span class="c1"># the update is non-linear so indices must be unique</span>
+<span class="n">grad_indices</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">_indices</span><span class="p">()</span>
+<span class="n">grad_values</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">_values</span><span class="p">()</span>
+<span class="n">size</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+
+<span class="c1"># pow(2) has the same semantics for both sparse and dense memory layouts since</span>
+<span class="c1"># 0^2 is zero</span>
+<span class="n">state_sum</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">_make_sparse</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad_indices</span><span class="p">,</span> <span class="n">grad_values</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+<span class="c1"># We take care to make std sparse, even though state_sum clearly is not.</span>
+<span class="c1"># This means that we&#39;re only applying the gradient to parts of the state_sum</span>
+<span class="c1"># for which it is specified. This even drives the point home a lot more that</span>
+<span class="c1"># the passed gradient is not sparse, but masked. </span>
+<span class="n">std</span> <span class="o">=</span> <span class="n">state_sum</span><span class="o">.</span><span class="n">sparse_mask</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;state_sum:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">state_sum</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;std:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">std</span><span class="o">.</span><span class="n">to_dense</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[0.5000, 0.5000, 0.5000, 0.5000],
+        [0.5000, 0.5000, 0.5000, 0.5000]])
+state_sum:
+ tensor([[ 0.5000,  0.5000,  9.5000,  0.5000],
+        [16.5000,  0.5000, 25.5000,  0.5000]])
+std:
+ tensor([[ 0.0000,  0.0000,  9.5000,  0.0000],
+        [16.5000,  0.0000, 25.5000,  0.0000]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>This is where we have a very important divergence. The addition of eps
+should technically be applied to all values, but instead is only applied to
+specified values. Here we’re using sparsity as a semantic extension and
+to enforce a certain pattern of defined and undefined values. If parts
+of the values of the gradient are zero they are still included if materialized.
+Even though they could be compressed by other sparse storage layouts.
+This is technically quite brittle even though someone could argue that eps is
+always very small.</p>
+<p>More so an implementation add_ for sparsity as a storage layout and compression
+scheme should cause densification, but we force it not to. For this one-off
+case it is fine until we want to introduce new compression schemes such as
+CSR, BSR or 2:4 block sparsity. We’ll then need to introduce separate Tensor
+types for each and write variations for gradients compressed using different
+storage formats.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We currently dodge all these concerns using the private method values.</span>
+<span class="n">std_values</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">_values</span><span class="p">()</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+
+<span class="c1"># We currently don&#39;t support div for sparse Tensors because zero / zero is</span>
+<span class="c1"># not well defined. For a MaskedTensor undefined / undefined is undefined.</span>
+<span class="n">param</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">_make_sparse</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad_indices</span><span class="p">,</span> <span class="n">grad_values</span> <span class="o">/</span> <span class="n">std_values</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">clr</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>param:
+ tensor([[0.0000, 1.0000, 1.9027, 3.0000],
+        [3.9015, 5.0000, 5.9010, 7.0000]])
+</pre></div>
+</div>
+</div>
+</div>
+<p>We’ve been conflating sparsity as an optimization with sparsity as a semantic extension to PyTorch. MaskedTensor proposes to call the semantic extension through sparsity masked. Currently we can’t have dense semantics with sparse storage or masked semantics with dense storage. MaskedTensor fixes that because it separates the storage from the semantics. Let’s look at above example using a masked gradient.</p>
+<p>Of course we can add sparsity as a storage layout for MaskedTensor which
+compresses repeated undefined values. We can recycle SparseTensor and SparseCSR
+by setting data and mask to an instance of each that share indices.
+However, ideally we’d just have regular torch.Tensors with a sparse layout
+and use those to back MaskedTensor.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">masked_grad</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">grad</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(),</span> <span class="n">grad</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;masked_grad:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">masked_grad</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_grad:
+ masked_tensor(
+  [
+    [      --,       --,   3.0000,       --],
+    [  4.0000,       --,   5.0000,       --]
+  ]
+)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create an entirely new set of parameters to avoid errors</span>
+<span class="n">param2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+<span class="n">state_sum2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="c1"># initial value for state sum</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is an excellent example of why to_tensor is important. We don&#39;t</span>
+<span class="c1"># want to propagate the mask to state_sum, but still maintain the compression.</span>
+<span class="c1"># to_tensor could eventually return a Tensor with sparse layout for the</span>
+<span class="c1"># special value of zero or first require explicit densification if it can&#39;t</span>
+<span class="c1"># maintain the layout.</span>
+
+<span class="c1"># This is also a value proposition for sparsity</span>
+<span class="c1"># as a separate layout and a SparseTensor with dense semantics. MaskedTensor</span>
+<span class="c1"># can be much simpler without having to introduce complex maske union and intersection</span>
+<span class="c1"># semantics for binary operations.</span>
+
+<span class="n">state_sum2</span> <span class="o">=</span> <span class="n">state_sum2</span> <span class="o">+</span> <span class="n">masked_grad</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># We can eventually construct a masked std backed by a sparse layout</span>
+<span class="n">std2</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">state_sum2</span><span class="p">,</span> <span class="n">masked_grad</span><span class="o">.</span><span class="n">mask</span><span class="p">())</span> <span class="c1">#, layout=torch.layout.coo)</span>
+<span class="c1"># Let&#39;s print both this version and the regular version for easier comparison</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;state_sum:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">state_sum</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;std:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;state_sum2:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">state_sum2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;std2:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">std2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>state_sum:
+ tensor([[ 0.5000,  0.5000,  9.5000,  0.5000],
+        [16.5000,  0.5000, 25.5000,  0.5000]])
+std:
+ tensor(indices=tensor([[0, 1, 1],
+                       [2, 0, 2]]),
+       values=tensor([3.0822, 4.0620, 5.0498]),
+       size=(2, 4), nnz=3, layout=torch.sparse_coo)
+state_sum2:
+ tensor([[ 0.5000,  0.5000,  9.5000,  0.5000],
+        [16.5000,  0.5000, 25.5000,  0.5000]])
+std2:
+ masked_tensor(
+  [
+    [      --,       --,   9.5000,       --],
+    [ 16.5000,       --,  25.5000,       --]
+  ]
+)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We can add support for in-place operations later. Notice how this doesn&#39;t</span>
+<span class="c1"># need to access any storage internals and is in general a lot shorter</span>
+<span class="n">std2</span> <span class="o">=</span> <span class="n">std2</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;std:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;std2:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">std2</span><span class="p">)</span>
+
+<span class="c1"># to_tensor ideally eventually returns a torch.Tensor with sparse layout</span>
+<span class="c1"># but would currently return a SparseTensor.</span>
+<span class="n">param2</span> <span class="o">=</span> <span class="n">param2</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">masked_grad</span> <span class="o">/</span> <span class="n">std2</span><span class="p">)</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">clr</span><span class="p">)</span>
+
+<span class="c1"># The final results is the same</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param2:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>std:
+ tensor(indices=tensor([[0, 1, 1],
+                       [2, 0, 2]]),
+       values=tensor([3.0822, 4.0620, 5.0498]),
+       size=(2, 4), nnz=3, layout=torch.sparse_coo)
+std2:
+ masked_tensor(
+  [
+    [      --,       --,   3.0822,       --],
+    [  4.0620,       --,   5.0498,       --]
+  ]
+)
+param:
+ tensor([[0.0000, 1.0000, 1.9027, 3.0000],
+        [3.9015, 5.0000, 5.9010, 7.0000]])
+param2:
+ tensor([[0.0000, 1.0000, 1.9027, 3.0000],
+        [3.9015, 5.0000, 5.9010, 7.0000]])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># # For reference, this is the regular, dense code path without masked gradients or sparsity</span>
+<span class="c1"># state_sum.addcmul_(grad, grad, value=1)</span>
+<span class="c1"># std = state_sum.sqrt().add_(eps)</span>
+<span class="c1"># param.addcdiv_(grad, std, value=-clr)</span>
+
+<span class="c1"># Compare this to the original for sparse</span>
+<span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">coalesce</span><span class="p">()</span>  <span class="c1"># the update is non-linear so indices must be unique</span>
+<span class="n">grad_indices</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">_indices</span><span class="p">()</span>
+<span class="n">grad_values</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">_values</span><span class="p">()</span>
+<span class="n">size</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+
+<span class="n">state_sum</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">_make_sparse</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad_indices</span><span class="p">,</span> <span class="n">grad_values</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+<span class="n">std</span> <span class="o">=</span> <span class="n">state_sum</span><span class="o">.</span><span class="n">sparse_mask</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+<span class="n">std_values</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">_values</span><span class="p">()</span><span class="o">.</span><span class="n">sqrt_</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+<span class="n">param</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">_make_sparse</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">grad_indices</span><span class="p">,</span> <span class="n">grad_values</span> <span class="o">/</span> <span class="n">std_values</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">clr</span><span class="p">)</span>
+
+<span class="c1"># All in all MaskedTensor minimizes the code to the follwing snippet</span>
+<span class="n">state_sum2</span> <span class="o">=</span> <span class="n">state_sum2</span> <span class="o">+</span> <span class="n">masked_grad</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">std2</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">state_sum2</span><span class="p">,</span> <span class="n">masked_grad</span><span class="o">.</span><span class="n">mask</span><span class="p">())</span> <span class="c1">#, layout=torch.layout.coo)</span>
+<span class="n">std2</span> <span class="o">=</span> <span class="n">std2</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+<span class="n">param2</span> <span class="o">=</span> <span class="n">param2</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">masked_grad</span> <span class="o">/</span> <span class="n">std2</span><span class="p">)</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=-</span><span class="n">clr</span><span class="p">)</span>
+
+<span class="c1"># We ran this code again so let&#39;s check that the results again match</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;param2:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">param2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>param:
+ tensor([[0.0000, 1.0000, 1.8329, 3.0000],
+        [3.8314, 5.0000, 5.8306, 7.0000]])
+param2:
+ tensor([[0.0000, 1.0000, 1.8329, 3.0000],
+        [3.8314, 5.0000, 5.8306, 7.0000]])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="safe_softmax.html" class="btn btn-neutral float-left" title="Safe Softmax" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nan_operators.html" class="btn btn-neutral float-right" title="Implemented missing torch.nan* operators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, PyTorch.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <style>
+    .wy-nav-content { max-width: 1200px !important; }
+  </style>
+
+
+</body>
+</html>

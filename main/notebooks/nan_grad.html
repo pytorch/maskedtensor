@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Unary Operations" href="../unary.html" />
+    <link rel="next" title="Safe Softmax" href="safe_softmax.html" />
     <link rel="prev" title="Overview of MaskedTensors" href="overview.html" /> 
 </head>
 
@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gita674e87) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git832d863) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -58,14 +58,17 @@
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview of MaskedTensors</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Resolving NaN Grad</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#resolving-issues">Resolving Issues</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#torch-where">10729 - torch.where</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#another-torch-where">52248 - another torch.where</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#torch-nansum-and-torch-nanmean">67180 - torch.nansum and torch.nanmean</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#when-using-mask-x-0-yields-nan-grad">4132 - when using mask, x/0 yields NaN grad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-10729-torch-where">PyTorch Issue 10729 - torch.where</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-52248-another-torch-where">PyTorch Issue 52248 - another torch.where</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-67180-torch-nansum-and-torch-nanmean">PyTorch Issue 67180 - torch.nansum and torch.nanmean</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-4132-when-using-mask-x-0-yields-nan-grad">PyTorch Issue 4132 - when using mask, x/0 yields NaN grad</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="safe_softmax.html">Safe Softmax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="issue_1369.html">Efficiency of writing “sparse” semantics for Adagrad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nan_operators.html">Implemented missing torch.nan* operators</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Python API</span></p>
 <ul>
@@ -115,21 +118,6 @@
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install -i https://test.pypi.org/simple/ maskedtensor
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://test.pypi.org/simple/
-Requirement already satisfied: maskedtensor in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (0.1.0)
-Requirement already satisfied: torch&lt;1.12,&gt;=1.11 in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from maskedtensor) (1.11.0+cpu)
-Requirement already satisfied: typing-extensions in /data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages (from torch&lt;1.12,&gt;=1.11-&gt;maskedtensor) (3.10.0.2)
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import factory function</span>
 <span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">masked_tensor</span>
 <span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">as_masked_tensor</span>
@@ -140,9 +128,9 @@ Requirement already satisfied: typing-extensions in /data/home/georgeqi/minicond
 <section id="resolving-issues">
 <h2>Resolving Issues<a class="headerlink" href="#resolving-issues" title="Permalink to this headline"></a></h2>
 <p>One issue that vanilla tensors run into is the inability to differentiate between gradients that are not defined (nan) vs. gradients that are actually 0.</p>
-<p>Below, we show by example several different issues where MaskedTensor can resolve and/or work around these issues.</p>
-<section id="torch-where">
-<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/10729">10729 - torch.where</a><a class="headerlink" href="#torch-where" title="Permalink to this headline"></a></h3>
+<p>Below, by way of example, we show several different issues where <code class="docutils literal notranslate"><span class="pre">torch.Tensor</span></code> falls short and <code class="docutils literal notranslate"><span class="pre">MaskedTensor</span></code> can resolve and/or work around the NaN gradient problem.</p>
+<section id="pytorch-issue-10729-torch-where">
+<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/10729">PyTorch Issue 10729 - torch.where</a><a class="headerlink" href="#pytorch-issue-10729-torch-where" title="Permalink to this headline"></a></h3>
 <p><strong>PyTorch result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -198,8 +186,8 @@ y.grad: None
 </div>
 <p>The gradient here is only provided to the selected subset. Effectively, this changes the gradient of where to mask out elements instead of setting them to zero.</p>
 </section>
-<section id="another-torch-where">
-<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/52248">52248 - another torch.where</a><a class="headerlink" href="#another-torch-where" title="Permalink to this headline"></a></h3>
+<section id="pytorch-issue-52248-another-torch-where">
+<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/52248">PyTorch Issue 52248 - another torch.where</a><a class="headerlink" href="#pytorch-issue-52248-another-torch-where" title="Permalink to this headline"></a></h3>
 <p><strong>PyTorch result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -242,8 +230,8 @@ y.grad: None
 </div>
 </div>
 </section>
-<section id="torch-nansum-and-torch-nanmean">
-<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/67180">67180 - torch.nansum and torch.nanmean</a><a class="headerlink" href="#torch-nansum-and-torch-nanmean" title="Permalink to this headline"></a></h3>
+<section id="pytorch-issue-67180-torch-nansum-and-torch-nanmean">
+<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/67180">PyTorch Issue 67180 - torch.nansum and torch.nanmean</a><a class="headerlink" href="#pytorch-issue-67180-torch-nansum-and-torch-nanmean" title="Permalink to this headline"></a></h3>
 <p><strong>PyTorch result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -284,8 +272,8 @@ y.grad: None
 </div>
 </div>
 </section>
-<section id="when-using-mask-x-0-yields-nan-grad">
-<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/4132">4132 - when using mask, x/0 yields NaN grad</a><a class="headerlink" href="#when-using-mask-x-0-yields-nan-grad" title="Permalink to this headline"></a></h3>
+<section id="pytorch-issue-4132-when-using-mask-x-0-yields-nan-grad">
+<h3><a class="reference external" href="https://github.com/pytorch/pytorch/issues/4132">PyTorch Issue 4132 - when using mask, x/0 yields NaN grad</a><a class="headerlink" href="#pytorch-issue-4132-when-using-mask-x-0-yields-nan-grad" title="Permalink to this headline"></a></h3>
 <p><strong>PyTorch result</strong>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -341,7 +329,7 @@ y.grad: None
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="overview.html" class="btn btn-neutral float-left" title="Overview of MaskedTensors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../unary.html" class="btn btn-neutral float-right" title="Unary Operations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="safe_softmax.html" class="btn btn-neutral float-right" title="Safe Softmax" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
