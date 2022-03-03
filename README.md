@@ -1,7 +1,6 @@
 # maskedtensor
---------------
 
-MaskedTensor is a library that is part of the [PyTorch](https://pytorch.org/) project. 
+MaskedTensor is a library that is part of the [PyTorch](https://pytorch.org/) project and is an extension of `torch.Tensor` by providing the ability to mask out the value for any given element. Elements with masked out values are ignored during computation and give the user access to advanced semantics such as masked reductions, safe softmax, masked matrix multiplication, filtering NaNs, and masking out certain gradient values.
 
 ## Installation
 
