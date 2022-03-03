@@ -1,3 +1,5 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -14,6 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import torch
 
 # -- Project information -----------------------------------------------------
 
@@ -21,7 +24,7 @@ project = 'MaskedTensor'
 copyright = '2022, PyTorch'
 author = 'PyTorch'
 
-version = "0.1.0"
+version = "0.10.0"
 release = "main"
 
 
@@ -32,6 +35,7 @@ release = "main"
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.napoleon',  # support NumPy and Google style docstrings
     'sphinx.ext.intersphinx',
@@ -45,6 +49,9 @@ extensions = [
     'sphinx_rtd_theme',
     'myst_nb',
 ]
+
+# build the templated autosummary files
+autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -68,6 +75,7 @@ exclude_patterns = [
     'notebooks/README.md',
     'README.md',
     'notebooks/*.md',
+    'generated/*'
 ]
 
 # Notebook cell execution timeout; defaults to 30.
