@@ -6,15 +6,23 @@
 MaskedTensor
 ========================================
 
-This library is a part of the `PyTorch <http://pytorch.org/>`_ project. The purpose of :mod:`maskedtensor` is to serve as an extension to `torch.tensor`, especially in cases of:
+This library is a part of the `PyTorch <http://pytorch.org/>`_ project. Please note that this library is currently 
+classified as a prototype -- that is, this library is at an early stage for feedback and testing, and we encourage
+users to submit any issues they may encounter, feature requests, etc. The Github can be found `here <https://github.com/pytorch/maskedtensor>`_.
 
-* Using any masked semantics
-* Differentiation between 0 and NaN gradients
-* Various sparse applications
+The purpose of :mod:`maskedtensor` is to serve as an extension to `torch.Tensor`, especially in cases of:
+
+* using any masked semantics (e.g. variable length tensors, nan* operators, etc.)
+* differentiation between 0 and NaN gradients
+* various sparse applications (see tutorial)
 
 More details can be found in the Overview tutorial.
 
-Please note that this library is very much in its early development stages. The Github can be found `here <https://github.com/pytorch/maskedtensor>`_, where we welcome any feature requests, issues, etc.
+.. toctree::
+   :maxdepth: 1
+   :caption: Installation
+
+   install
 
 .. toctree::
    :maxdepth: 1
@@ -22,3 +30,15 @@ Please note that this library is very much in its early development stages. The 
 
    notebooks/overview
    notebooks/nan_grad
+   notebooks/safe_softmax
+   notebooks/issue_1369
+   notebooks/nan_operators
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Python API
+
+   unary
+   binary
+   reductions
+   view_and_select

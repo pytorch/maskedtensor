@@ -28,6 +28,7 @@ docs/src/**/*
 docs/cpp/build
 docs/cpp/source/api
 docs/_build
+docs/source/generated/
 test/.coverage
 test/.hypothesis/
 test/cpp/api/mnist

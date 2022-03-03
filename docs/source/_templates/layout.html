@@ -22,4 +22,12 @@
       <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">{{ version }} &#x25BC</a>
     </div>
     {% include "searchbox.html" %}
-{% endblock %} 
+{% endblock %}
+
+{% block footer %}
+  {{ super() }}
+
+  <style>
+    .wy-nav-content { max-width: 1200px !important; }
+  </style>
+{% endblock %}
