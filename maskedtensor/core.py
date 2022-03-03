@@ -336,6 +336,14 @@ class MaskedTensor(torch.Tensor):
             new_data = func(args[0], get_data(mx), get_data(my))
             new_mask = func(args[0], get_mask(mx), get_mask(my))
             return MaskedTensor(new_data, new_mask)
+        msg = (
+            f"{func.__name__} is not implemented in __torch_dispatch__.\n"
+            "If you would like this operator to be supported, please file an issue for a feature request at "
+            "https://github.com/pytorch/maskedtensor/issues with a minimal reproducible code snippet.\n"
+            "In the case that the semantics for the operator are not trivial, it would be appreciated "
+            "to also include a proposal for the semantics."
+        )
+        logging.info(msg)
         return NotImplemented
 
     def __lt__(self, other):
