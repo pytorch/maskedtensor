@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Resolving NaN Grad
+# Differentiating between 0 and NaN gradient
 
 +++
 
