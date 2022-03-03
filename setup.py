@@ -23,7 +23,7 @@ package_name = "maskedtensor"
 print("Building wheel {}-{}".format(package_name, version))
 
 requirements = requirements = [
-    "torch>=1.11,<1.12",
+    "torch>=1.11,<=1.12",
 ]
 
 readme = open("README.md").read()

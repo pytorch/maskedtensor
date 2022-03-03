@@ -27,10 +27,6 @@ if "1.11.0" not in torch.__version__:
 ```
 
 ```{code-cell} ipython3
-!pip install -i https://test.pypi.org/simple/ maskedtensor
-```
-
-```{code-cell} ipython3
 # Import factory function
 from maskedtensor import masked_tensor
 from maskedtensor import as_masked_tensor
@@ -42,11 +38,11 @@ from maskedtensor import as_masked_tensor
 
 One issue that vanilla tensors run into is the inability to differentiate between gradients that are not defined (nan) vs. gradients that are actually 0.
 
-Below, we show by example several different issues where MaskedTensor can resolve and/or work around these issues.
+Below, by way of example, we show several different issues where `torch.Tensor` falls short and `MaskedTensor` can resolve and/or work around the NaN gradient problem.
 
 +++ {"tags": []}
 
-### [10729 - torch.where](https://github.com/pytorch/pytorch/issues/10729)
+### [PyTorch Issue 10729 - torch.where](https://github.com/pytorch/pytorch/issues/10729)
 
 +++
 
@@ -82,7 +78,7 @@ The gradient here is only provided to the selected subset. Effectively, this cha
 
 +++
 
-### [52248 - another torch.where](https://github.com/pytorch/pytorch/issues/52248)
+### [PyTorch Issue 52248 - another torch.where](https://github.com/pytorch/pytorch/issues/52248)
 
 +++
 
@@ -111,7 +107,7 @@ print(torch.where(b, a/0, c))
 print(torch.autograd.grad(torch.where(b, a/0, c), a))
 ```
 
-### [67180 - torch.nansum and torch.nanmean](https://github.com/pytorch/pytorch/issues/67180)
+### [PyTorch Issue 67180 - torch.nansum and torch.nanmean](https://github.com/pytorch/pytorch/issues/67180)
 
 +++
 
@@ -140,7 +136,7 @@ bgrad1, = torch.autograd.grad(c1, b, retain_graph=True)
 bgrad1
 ```
 
-### [4132 - when using mask, x/0 yields NaN grad](https://github.com/pytorch/pytorch/issues/4132)
+### [PyTorch Issue 4132 - when using mask, x/0 yields NaN grad](https://github.com/pytorch/pytorch/issues/4132)
 
 +++
 
