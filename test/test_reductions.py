@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import unittest
+
 import torch
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
