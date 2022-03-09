@@ -1,9 +1,11 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
-import torch
 import math
+
+import torch
+from torch.nn.functional import linear, dropout
+
 from .creation import masked_tensor
-from torch.nn.functional import linear
 
 Tensor = torch.Tensor
 

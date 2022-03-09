@@ -1,12 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
-import setuptools
 import distutils.command.clean
-import shutil
-import os
 import glob
-import subprocess
 import io
+import os
+import shutil
+import subprocess
+
+import setuptools
 
 
 def read(*names, **kwargs):
@@ -27,6 +28,7 @@ requirements = requirements = [
 ]
 
 readme = open("README.md").read()
+
 
 class clean(distutils.command.clean.clean):
     def run(self):

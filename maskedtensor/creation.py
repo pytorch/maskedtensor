@@ -1,11 +1,12 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
-import torch
-from .core import MaskedTensor
-from typing import Optional, Tuple, List
 import math
+from typing import Optional, Tuple, List
 
+import torch
 from torch.nn.functional import linear, dropout
+
+from .core import MaskedTensor
 
 Tensor = torch.Tensor
 # Basic factory function

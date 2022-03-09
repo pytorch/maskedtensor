@@ -1,8 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import unittest
-import torch
+
 import maskedtensor
+import torch
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
@@ -11,7 +12,10 @@ class TestMaskedTensorMatmul(TestCase):
     def test_bmm(self):
         x = torch.rand(3, 2, 1)
         key_padding_mask = torch.as_tensor(
-            [[False, False, False], [False, True, True],]
+            [
+                [False, False, False],
+                [False, True, True],
+            ]
         )
         x_mt = maskedtensor.masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
@@ -25,7 +29,10 @@ class TestMaskedTensorMatmul(TestCase):
         x = torch.arange(3 * 2 * 2).reshape(3, 2, 2).float()
         x_t = x.transpose(-2, -1) + x.sum()
         key_padding_mask = torch.as_tensor(
-            [[False, False, False], [False, True, True],]
+            [
+                [False, False, False],
+                [False, True, True],
+            ]
         )
         x_mt = maskedtensor.masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
@@ -48,7 +55,11 @@ class TestMaskedTensorMatmul(TestCase):
             requires_grad=True,
         )
         attn_mask_bool = torch.as_tensor(
-            [[False, True, True], [False, False, True], [True, False, False],]
+            [
+                [False, True, True],
+                [False, False, True],
+                [True, False, False],
+            ]
         )
         attn_mask = attn_mask_bool.float().masked_fill_(attn_mask_bool, float("-inf"))
         v = maskedtensor.masked_bmm(x, x_mt.transpose(1, 2), attn_mask)

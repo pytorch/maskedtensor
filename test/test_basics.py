@@ -1,8 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import unittest
-import torch
+
 import maskedtensor
+import torch
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
@@ -44,10 +45,17 @@ class TestMaskedTensor(TestCase):
 
         x = torch.rand(3, 2, 1)
         key_padding_mask = torch.as_tensor(
-            [[False, False, False], [False, True, True],]
+            [
+                [False, False, False],
+                [False, True, True],
+            ]
         )
         attn_mask = torch.as_tensor(
-            [[False, True, True], [False, False, True], [True, False, False],]
+            [
+                [False, True, True],
+                [False, False, True],
+                [True, False, False],
+            ]
         )
         output, scores = attn_nn(
             x, x, x, key_padding_mask=key_padding_mask, attn_mask=attn_mask
