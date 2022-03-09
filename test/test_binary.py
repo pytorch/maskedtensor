@@ -7,9 +7,9 @@
 
 import logging
 
+import maskedtensor
 import pytest
 import torch
-import maskedtensor
 from maskedtensor import masked_tensor
 from maskedtensor.binary import NATIVE_BINARY_FNS, NATIVE_INPLACE_BINARY_FNS
 

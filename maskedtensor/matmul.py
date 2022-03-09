@@ -1,11 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
-import torch
-import math
-from .creation import masked_tensor
-from torch.nn.functional import linear
 import logging
+import math
 import os
+
+import torch
+from torch.nn.functional import linear
+
+from .creation import masked_tensor
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
@@ -65,8 +67,8 @@ def torch_matmul(func_name):
     func = getattr(torch.ops.aten, func_name)
 
     def matmul(input0, input1):
-        from maskedtensor import is_masked_tensor
         from maskedtensor import MaskedTensor
+        from maskedtensor import is_masked_tensor
 
         logging.debug("Calling matmul with type({type(input0)}, {type(input1)})")
         if is_masked_tensor(input0) and is_masked_tensor(input1):
