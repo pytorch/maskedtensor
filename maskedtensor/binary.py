@@ -1,8 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 from torch.overrides import get_default_nowrap_functions
+from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
 
 BINARY_NAMES = [
     "add",
