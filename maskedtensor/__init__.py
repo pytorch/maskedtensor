@@ -15,3 +15,8 @@ from .reductions import is_reduction
 from .reductions import apply_reduction
 from .unary import is_native_unary
 from .unary import apply_native_unary
+
+try:
+    from .version import __version__  # noqa: F401
+except ImportError:
+    pass
