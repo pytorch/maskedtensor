@@ -3,9 +3,6 @@ name: Build, Test and Upload Wheel
 on:
   workflow_call:
     inputs:
-      branch:
-        required: true
-        type: string
       pip_path:
         required: true
         type: string
@@ -15,7 +12,7 @@ on:
 
 jobs:
   build_test_upload:
-    if: github.repository == 'pytorch/maskedtensor' && inputs.branch != ''
+    if: github.repository == 'pytorch/maskedtensor'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -46,8 +43,6 @@ jobs:
           pip3 install torch maskedtensor -f ${{ inputs.pip_path }}
       - name: Check out source repository
         uses: actions/checkout@v2
-        with:
-          ref: ${{ inputs.branch }}
       - name: Get hash of the last commit from release
         if: inputs.pre_dev_release
         run: |
