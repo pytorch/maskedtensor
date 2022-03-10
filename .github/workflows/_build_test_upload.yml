@@ -6,12 +6,12 @@ on:
       branch:
         required: true
         type: string
-      pip_path:
-        required: true
-        type: string
       pre_dev_release:
         required: true
         type: boolean
+      pytorch_version:
+        required: true
+        type: string
 
 jobs:
   build_test_upload:
