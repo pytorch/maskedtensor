@@ -17,19 +17,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        include:
-         - os: linux.2xlarge
-           python-version: 3.7
-           python-tag: "py37"
-           cuda-tag: "cpu"
-         - os: linux.2xlarge
-           python-version: 3.8
-           python-tag: "py38"
-           cuda-tag: "cpu"
-         - os: linux.2xlarge
-           python-version: 3.9
-           python-tag: "py39"
-           cuda-tag: "cpu"
+        os:
+          # - macos-latest
+          - ubuntu-latest
+          # - windows-latest
+        python-version:
+          - 3.7
+          - 3.8
+          - 3.9
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Check ldd --version
