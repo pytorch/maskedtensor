@@ -51,8 +51,8 @@ jobs:
         run: |
           pip3 install -r requirements.txt
           # Using --no-deps here to make sure correct version of PyTorch Core
-          pip3 install --pre -f ${{ inputs.pip_path }} --no-deps
-          pip install -i https://test.pypi.org/simple/ ${{ inputs.package_name }}
+          pip3 install --pre torch>=1.11.0.dev -f ${{ inputs.pip_path }} --no-deps
+          pip3 install -i https://test.pypi.org/simple/ ${{ inputs.package_name }}
           pushd ~
           RELEASE_COMMIT=$(python -c 'import maskedtensor; print(maskedtensor.version.git_version)')
           echo "::set-output name=hash::$RELEASE_COMMIT"
