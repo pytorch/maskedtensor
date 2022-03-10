@@ -47,12 +47,11 @@ class clean(distutils.command.clean.clean):
 setuptools.setup(
     name=package_name,
     version=version,
-    author="Christian Puhrsch",
-    author_email="cpuhrsch@fb.com",
+    author="PyTorch Core Team",
     description="MaskedTensors for PyTorch",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/cpuhrsch/maskedtensor",
+    url="https://github.com/pytorch/maskedtensor",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
