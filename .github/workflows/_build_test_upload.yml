@@ -99,7 +99,7 @@ jobs:
       - name: Push official wheel to PYPI
         if: ${{ ! inputs.pre_dev_release }}
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
           pip3 install twine
           python -m twine upload --repository testpypi
