@@ -16,7 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import torch
+import maskedtensor
 
 # -- Project information -----------------------------------------------------
 
@@ -24,7 +24,8 @@ project = "MaskedTensor"
 copyright = "2022, PyTorch"
 author = "PyTorch"
 
-version = "0.10.0"
+v, git = maskedtensor.__version__.split("+")
+version = f"main ({v}+git{git})"
 release = "main"
 
 
