@@ -7,3 +7,4 @@ myst-nb
 
 # Packages used for notebook execution
 numpy
+torch>=1.11,<=1.12
