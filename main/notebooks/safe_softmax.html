@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Efficiency of writing “sparse” semantics for Adagrad" href="issue_1369.html" />
-    <link rel="prev" title="Resolving NaN Grad" href="nan_grad.html" /> 
+    <link rel="prev" title="Differentiating between 0 and NaN gradient" href="nan_grad.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git832d863) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gitad7486f) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -56,7 +56,7 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview of MaskedTensors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="nan_grad.html">Resolving NaN Grad</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nan_grad.html">Differentiating between 0 and NaN gradient</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Safe Softmax</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
 </ul>
@@ -140,8 +140,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[0.3628,    nan, 0.0000],
-        [0.6372,    nan, 1.0000],
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[0.4359,    nan, 0.0000],
+        [0.5641,    nan, 1.0000],
         [0.0000,    nan, 0.0000]])
 </pre></div>
 </div>
@@ -157,8 +157,8 @@
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [  0.3628,       --,       --],
-    [  0.6372,       --,   1.0000],
+    [  0.4359,       --,       --],
+    [  0.5641,       --,   1.0000],
     [      --,       --,       --]
   ]
 )
@@ -173,7 +173,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="nan_grad.html" class="btn btn-neutral float-left" title="Resolving NaN Grad" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="nan_grad.html" class="btn btn-neutral float-left" title="Differentiating between 0 and NaN gradient" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="issue_1369.html" class="btn btn-neutral float-right" title="Efficiency of writing “sparse” semantics for Adagrad" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

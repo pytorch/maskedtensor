@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resolving NaN Grad &mdash; MaskedTensor main documentation</title>
+  <title>Differentiating between 0 and NaN gradient &mdash; MaskedTensor main documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git832d863) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gitad7486f) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -56,7 +56,7 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview of MaskedTensors</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Resolving NaN Grad</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Differentiating between 0 and NaN gradient</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#resolving-issues">Resolving Issues</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-10729-torch-where">PyTorch Issue 10729 - torch.where</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pytorch-issue-52248-another-torch-where">PyTorch Issue 52248 - another torch.where</a></li>
@@ -92,7 +92,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Resolving NaN Grad</li>
+      <li>Differentiating between 0 and NaN gradient</li>
       <li class="wy-breadcrumbs-aside">
               <a href="https://github.com/pytorch/maskedtensor/blob/main/docs/source/notebooks/nan_grad.ipynb" class="fa fa-github"> Edit on GitHub</a>
       </li>
@@ -102,8 +102,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="resolving-nan-grad">
-<h1>Resolving NaN Grad<a class="headerlink" href="#resolving-nan-grad" title="Permalink to this headline"></a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="differentiating-between-0-and-nan-gradient">
+<h1>Differentiating between 0 and NaN gradient<a class="headerlink" href="#differentiating-between-0-and-nan-gradient" title="Permalink to this headline"></a></h1>
 <p><a class="reference external" href="https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/nan_grad.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -153,7 +153,7 @@ x.grad: tensor([4.5400e-05, 6.7379e-03, 0.0000e+00, 0.0000e+00, 0.0000e+00, 0.00
 y.grad: None
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/data/home/georgeqi/miniconda/envs/mt_release_0.1.0/lib/python3.8/site-packages/torch/_tensor.py:1104: UserWarning: The .grad attribute of a Tensor that is not a leaf Tensor is being accessed. Its .grad attribute won&#39;t be populated during autograd.backward(). If you indeed want the .grad field to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. If you access the non-leaf Tensor by mistake, make sure you access the leaf Tensor instead. See github.com/pytorch/pytorch/pull/30531 for more informations. (Triggered internally at  aten/src/ATen/core/TensorBody.h:475.)
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/.local/lib/python3.8/site-packages/torch/_tensor.py:1104: UserWarning: The .grad attribute of a Tensor that is not a leaf Tensor is being accessed. Its .grad attribute won&#39;t be populated during autograd.backward(). If you indeed want the .grad field to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. If you access the non-leaf Tensor by mistake, make sure you access the leaf Tensor instead. See github.com/pytorch/pytorch/pull/30531 for more informations. (Triggered internally at  aten/src/ATen/core/TensorBody.h:475.)
   return self._grad
 </pre></div>
 </div>
