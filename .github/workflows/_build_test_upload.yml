@@ -34,6 +34,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Update pip
+        run: |
+          python3 -m pip install --upgrade pip
       - name: Install Pre-release/Development-release PyTorch
         if: inputs.pre_dev_release
         run: |
@@ -51,7 +54,7 @@ jobs:
         run: |
           pip3 install -r requirements.txt
           # Using --no-deps here to make sure correct version of PyTorch Core
-          pip3 install --pre torch>=1.11.0.dev -f ${{ inputs.pip_path }} --no-deps
+          pip3 install --pre maskedtensor -f ${{ inputs.pip_path }} --no-deps
           pip3 install -i ${{ inputs.package_name }}
           pushd ~
           RELEASE_COMMIT=$(python -c 'import maskedtensor; print(maskedtensor.version.git_version)')
