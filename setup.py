@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # Commented out sections we may need later on to enable C++ extension
     setuptools.setup(
         # Metadata
-        name="maskedtensor_nightly" if args.nightly else "maskedtensor",
+        name="maskedtensor-nightly" if args.nightly else "maskedtensor",
         version=VERSION,
         url="https://github.com/pytorch/maskedtensor",
         description="MaskedTensors for PyTorch",

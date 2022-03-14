@@ -16,6 +16,6 @@ jobs:
     uses: ./.github/workflows/_build_test_upload.yml
     with:
       package_name: maskedtensor-nightly
-      wheel_version: "nightly"
+      wheel_version: nightly
       pip_path: https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
       pre_dev_release: true
