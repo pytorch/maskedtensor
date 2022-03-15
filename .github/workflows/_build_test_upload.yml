@@ -96,7 +96,7 @@ jobs:
           PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
           pip3 install twine
-          python -m twine upload --skip-existing
+          python -m twine upload --skip-existing \
             --username __token__ \
             --password "$PYPI_TOKEN" \
             dist/${{ inputs.package_name }}*.whl
