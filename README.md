@@ -9,10 +9,12 @@ MaskedTensor is a prototype library that is part of the [PyTorch](https://pytorc
 
 ### Binaries
 
-To install MaskedTensor via pip, use the following command:
+To install the official MaskedTensor via pip, use the following command:
 ```
 pip install maskedtensor
 ```
+
+For the dev (unstable) nightly version that contains the most recent features, please replace `maskedtensor` with `maskedtensor-nightly`.
 
 Note that MaskedTensor requires PyTorch >= 1.11, which you can get on the [the main website](https://pytorch.org/get-started/locally/)
 

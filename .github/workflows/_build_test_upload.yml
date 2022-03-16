@@ -93,7 +93,7 @@ jobs:
           ! inputs.pre_dev_release ||
             steps.release_commit.outputs.hash != steps.source_commit.outputs.hash
         env:
-          PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           pip3 install twine
           python -m twine upload --skip-existing \
