@@ -15,6 +15,9 @@ on:
       pre_dev_release:
         required: true
         type: boolean
+    secrets:
+      PYPI_TOKEN:
+        required: false
 
 jobs:
   build_test_upload:

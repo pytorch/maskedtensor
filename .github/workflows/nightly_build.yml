@@ -19,3 +19,5 @@ jobs:
       wheel_version: nightly
       pip_path: https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
       pre_dev_release: true
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
