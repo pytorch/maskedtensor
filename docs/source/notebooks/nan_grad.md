@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Differentiating between 0 and NaN gradient
+# Distinguishing between 0 and NaN gradient
 
 +++
 
@@ -36,7 +36,7 @@ from maskedtensor import as_masked_tensor
 
 +++
 
-One issue that vanilla tensors run into is the inability to differentiate between gradients that are not defined (nan) vs. gradients that are actually 0.
+One issue that vanilla tensors run into is the inability to distinguish between gradients that are not defined (nan) vs. gradients that are actually 0.
 
 Below, by way of example, we show several different issues where `torch.Tensor` falls short and `MaskedTensor` can resolve and/or work around the NaN gradient problem.
 
