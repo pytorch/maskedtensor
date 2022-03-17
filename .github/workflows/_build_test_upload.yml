@@ -88,6 +88,11 @@ jobs:
         with:
           name: ${{ inputs.package_name }}_${{ matrix.python-version }}_${{ matrix.cuda-tag }}.whl
           path: dist/${{ inputs.package_name }}*.whl
+      - name: Print variable
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          echo "$PYPI_TOKEN"
       - name: Push wheel to PYPI
         if: |
           ! inputs.pre_dev_release ||

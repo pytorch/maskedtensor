@@ -1,6 +1,6 @@
 name: Test variable name
 
-on: [push, pull_request]
+on: workflow_dispatch:
 
 jobs:
   build_test_upload:
