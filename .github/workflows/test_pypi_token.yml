@@ -1,0 +1,21 @@
+name: Test variable name
+
+on: [push, pull_request]
+
+jobs:
+  build_test_upload:
+    if: github.repository == 'pytorch/maskedtensor'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        python-version:
+          - 3.9
+    steps:
+      - name: Print variable
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          echo "$PYPI_TOKEN"
