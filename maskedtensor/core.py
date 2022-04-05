@@ -139,6 +139,10 @@ class MaskedTensor(torch.Tensor):
             or data.dtype == torch.int32
             or data.dtype == torch.int64
         )
+        # print ("data dim:", data.dim(), "mask dim: ", mask.dim())
+        # print ("data", data)
+        # print ("mask", mask)
+        # print ()
         assert data.dim() == mask.dim()
         assert data.size() == mask.size()
         assert not mask.requires_grad
