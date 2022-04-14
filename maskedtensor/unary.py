@@ -163,6 +163,7 @@ def is_native_unary(fn):
 
 
 def apply_native_unary(fn, *args, **kwargs):
+    print("native unary function", fn)
     if fn in NATIVE_UNARY_FNS:
         return NATIVE_UNARY_MAP[fn](*args, **kwargs)
     if fn in NATIVE_INPLACE_UNARY_FNS:

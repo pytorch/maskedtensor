@@ -6,6 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+import itertools
 
 import maskedtensor
 import pytest
@@ -14,7 +15,7 @@ from maskedtensor import masked_tensor
 from maskedtensor.unary import NATIVE_UNARY_FNS, NATIVE_INPLACE_UNARY_FNS
 
 
-def _get_test_data(fn_name):
+def _get_test_data(fn_name, is_sparse):
     data = torch.randn(10, 10)
     mask = torch.rand(10, 10) > 0.5
     if fn_name[-1] == "_":
@@ -31,6 +32,9 @@ def _get_test_data(fn_name):
         data = data.abs() + 1
     if fn_name in ["bitwise_not"]:
         data = data.mul(128).to(torch.int8)
+    if is_sparse:
+        data = data.to_sparse_coo()
+        mask = mask.to_sparse_coo()
     return data, mask
 
 
@@ -59,16 +63,20 @@ def _get_sample_args(fn_name, data, mask):
 def _compare_mt_t(mt_result, t_result):
     mask = mt_result.masked_mask
     mt_result_data = mt_result.masked_data
-    a = t_result.masked_fill_(~mask, 0)
-    b = mt_result_data.masked_fill_(~mask, 0)
+    fill_value = torch.tensor(0, dtype=t_result.dtype, device=t_result.device)
+    a = torch._masked._where(mask, t_result, fill_value)
+    b = torch._masked._where(mask, mt_result_data, fill_value)
+    if a.layout == torch.sparse_coo and b.layout == torch.sparse_coo:
+        a = a.to_dense()
+        b = b.to_dense()
     assert torch.allclose(a, b)
 
 
-@pytest.mark.parametrize("fn", NATIVE_UNARY_FNS)
-def test_unary(fn):
+@pytest.mark.parametrize("fn,is_sparse", list(itertools.product(NATIVE_UNARY_FNS, [True, False])))
+def test_unary(fn, is_sparse):
     torch.random.manual_seed(0)
     fn_name = fn.__name__
-    data, mask = _get_test_data(fn_name)
+    data, mask = _get_test_data(fn_name, is_sparse)
     kwargs = _get_sample_kwargs(fn_name)
 
     t_args, mt_args = _get_sample_args(fn_name, data, mask)
@@ -78,11 +86,11 @@ def test_unary(fn):
     _compare_mt_t(mt_result, t_result)
 
 
-@pytest.mark.parametrize("fn", NATIVE_INPLACE_UNARY_FNS)
-def test_inplace_unary(fn):
+@pytest.mark.parametrize("fn,is_sparse", list(itertools.product(NATIVE_INPLACE_UNARY_FNS, [True, False])))
+def test_inplace_unary(fn, is_sparse):
     torch.random.manual_seed(0)
     fn_name = fn.__name__
-    data, mask = _get_test_data(fn_name)
+    data, mask = _get_test_data(fn_name, is_sparse)
     kwargs = _get_sample_kwargs(fn_name)
 
     t_args, mt_args = _get_sample_args(fn_name, data, mask)
