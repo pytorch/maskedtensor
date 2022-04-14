@@ -6,20 +6,23 @@ import functools
 import unittest
 import itertools
 from contextlib import contextmanager
-from torch.testing._internal.common_device_type import instantiate_device_type_tests
-from torch.testing._internal.common_device_type import ops
-from torch.testing._internal.common_dtype import integral_types
-from torch.testing._internal.common_device_type import \
-     toleranceOverride, tol
+
+from torch.testing._internal.common_device_type import instantiate_device_type_tests, ops
+from torch.testing._internal.common_methods_invocations import unary_ufuncs, binary_ufuncs
 
 from maskedtensor import masked_tensor
+from maskedtensor.unary import UNARY_NAMES
 from maskedtensor.binary import BINARY_NAMES
 from maskedtensor_additional_op_db import additional_op_db, create_mask
-from test_unary import _get_test_data, _get_sample_args, _get_sample_kwargs, _compare_mt_t
 
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
-import torch.autograd.forward_ad as fwAD
+def is_unary(op):
+    return op.name in UNARY_NAMES
 
+def is_binary(op):
+    return op.name in BINARY_NAMES
+
+mt_unary_ufuncs = [op for op in unary_ufuncs if is_unary(op)]
+mt_binary_ufuncs = [op for op in binary_ufuncs if is_binary(op)]
 
 def _compare_mt_t(mt_result, t_result):
     mask = mt_result.masked_mask
@@ -28,11 +31,8 @@ def _compare_mt_t(mt_result, t_result):
     b = mt_result_data.masked_fill_(~mask, 0)
     assert torch.allclose(a, b)
 
-
 class TestOperators(TestCase):
-    @ops(additional_op_db, allowed_dtypes=(torch.float,))
-    def test_maskedtensor_result(self, device, dtype, op):
-        is_binary = op.name in BINARY_NAMES
+    def test_native_masked_result_equality(self, device, dtype, op):
         samples = op.sample_inputs(device, dtype, requires_grad=True)
 
         for sample in samples:
@@ -44,7 +44,7 @@ class TestOperators(TestCase):
                 mask = sample_kwargs.pop('mask')
 
             # Binary operations currently only support same size masks
-            if is_binary:
+            if is_binary(op):
                 if input.shape != sample_args[0].shape:
                     continue
                 # Binary operations also don't support kwargs right now
@@ -64,9 +64,22 @@ class TestOperators(TestCase):
             _compare_mt_t(mt_result, t_result)
 
             # If the operation is binary, check that lhs = masked, rhs = regular tensor also works
-            if is_binary:
+            if is_binary(op):
                 mt_result2 = op(mt, *sample_args, **sample_kwargs)
                 _compare_mt_t(mt_result2, t_result)
+
+    @ops(mt_unary_ufuncs)
+    def test_unary_core(self, device, dtype, op):
+        self.test_native_masked_result_equality(device, dtype, op)
+
+    @ops(mt_binary_ufuncs)
+    def test_binary_core(self, device, dtype, op):
+        self.test_native_masked_result_equality(device, dtype, op)
+
+    @ops(additional_op_db, allowed_dtypes=(torch.float,))
+    def test_maskedtensor_result(self, device, dtype, op):
+        self.test_native_masked_result_equality(device, dtype, op)
+
 
 
 only_for = ("cpu", "cuda")

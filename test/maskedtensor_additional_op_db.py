@@ -34,24 +34,6 @@ S = 5
 def create_mask(shape, device):
     return make_tensor(shape, device=device, dtype=torch.bool, low=0, high=1, requires_grad=False)
 
-def unary_input_mask_wrapper(f):
-    """Add a 'mask' argument to the kwargs"""
-
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        samples = f(*args, **kwargs)
-        output = []
-        for sample in samples:
-            mask = create_mask(sample.input.shape, sample.input.device)
-            output.append(SampleInput(sample.input, args=sample.args, kwargs=dict(mask=mask, **sample.kwargs)))
-        #     print("uhh..", output[-1].input, output[-1].kwargs)
-        # print ("output", output)
-        return output
-
-    return wrapper
-
-# def binary_input_mask_wrapper(f):
-
 def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
     shapes = [(2, 3, 2), (2, 0, 3)]
 
