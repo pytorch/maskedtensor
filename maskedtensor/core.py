@@ -152,6 +152,7 @@ class MaskedTensor(torch.Tensor):
 
     def __init__(self, data, mask, requires_grad=False):
         logging.debug(f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
+        assert data.layout == mask.layout
         if data.layout == torch.strided:
             # .contiguous cannot be overwritten so it's always contiguous
             data = data.contiguous()

@@ -119,10 +119,12 @@ def torch_unary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         if args[0].is_sparse_coo():
-            data_values = data_args[0].values()
+            s = data_args[0].size()
+            data_args[0] = data_args[0].coalesce()
             i = data_args[0].indices()
-            v = fn(*([data_values] + data_args[1:]))
-            result_data = torch.sparse_coo_tensor(i, v)
+            data_args[0] = data_args[0].coalesce().values()
+            v = fn(*data_args)
+            result_data = torch.sparse_coo_tensor(i, v, size=s)
         else:
             result_data = fn(*data_args)
         return _wrap_result(result_data, mask_args[0])
@@ -146,10 +148,11 @@ def torch_inplace_unary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         if data_args[0].is_sparse_coo():
+            s = data_args[0].size()
             i = data_args[0].indices()
             data_args[0] = data_args[0].values()
             v = fn(*data_args)
-            result_data = torch.sparse_coo_tensor(i, v)
+            result_data = torch.sparse_coo_tensor(i, v, size=s)
         else:
             result_data = fn(*data_args)
         args[0]._set_data_mask(result_data, mask_args[0])

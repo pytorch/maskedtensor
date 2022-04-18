@@ -35,6 +35,10 @@ MASKEDTENSOR_FLOAT_TYPES = {
 def _compare_mt_t(mt_result, t_result):
     mask = mt_result.masked_mask
     mt_result_data = mt_result.masked_data
+    if mask.layout == torch.sparse_coo:
+        mask = mask.to_dense()
+    if mt_result_data.layout == torch.sparse_coo:
+        mt_result_data = mt_result_data.to_dense()
     a = t_result.detach().masked_fill_(~mask, 0)
     b = mt_result_data.masked_fill_(~mask, 0)
     assert torch.allclose(a, b)
@@ -64,7 +68,10 @@ def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(arg, mask) if torch.is_tensor(arg) else arg
+            masked_tensor(
+                arg.to_sparse_coo() if is_sparse else arg,
+                mask
+            ) if torch.is_tensor(arg) else arg
             for arg in sample_args
         ]
 
@@ -75,7 +82,7 @@ def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
 
         # If the operation is binary, check that lhs = masked, rhs = regular tensor also works
         if is_binary(op):
-            mt_result2 = op(mt, *sample_args, **sample_kwargs)
+            mt_result2 = op(mt, *mt_args, **sample_kwargs)
             _compare_mt_t(mt_result2, t_result)
 
 class TestOperators(TestCase):
