@@ -2,7 +2,7 @@
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
+from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 UNARY_NAMES = [
     "abs",
@@ -118,7 +118,6 @@ def torch_unary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        print ("in torch_unary.unary_fn. ", type(args[0]), args[0])
         if args[0].is_sparse_coo():
             data_values = data_args[0].values()
             i = data_args[0].indices()

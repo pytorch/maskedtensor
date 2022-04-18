@@ -5,7 +5,7 @@ import os
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
+from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
@@ -115,6 +115,17 @@ class MaskedWhere(torch.autograd.Function):
         )
 
 
+MASKEDTENSOR_ALLOWED_DTYPES = {
+    torch.float16,
+    torch.float32,
+    torch.float64,
+    torch.bool,
+    torch.int8,
+    torch.int16,
+    torch.int32,
+    torch.int64,
+}
+
 class MaskedTensor(torch.Tensor):
     @staticmethod
     def __new__(cls, data, mask, requires_grad=False):
@@ -134,23 +145,13 @@ class MaskedTensor(torch.Tensor):
         assert data.layout in [torch.strided, torch.sparse_coo]
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
-        assert (
-            data.dtype == torch.float16
-            or data.dtype == torch.float32
-            or data.dtype == torch.float64
-            or data.dtype == torch.bool
-            or data.dtype == torch.int8
-            or data.dtype == torch.int16
-            or data.dtype == torch.int32
-            or data.dtype == torch.int64
-        )
+        assert data.dtype in MASKEDTENSOR_ALLOWED_DTYPES
         assert data.dim() == mask.dim()
         assert data.size() == mask.size()
         assert not mask.requires_grad
 
     def __init__(self, data, mask, requires_grad=False):
         logging.debug(f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
-        print ("hi! initiating")
         if data.layout == torch.strided:
             # .contiguous cannot be overwritten so it's always contiguous
             data = data.contiguous()
@@ -208,8 +209,7 @@ class MaskedTensor(torch.Tensor):
             from .functions import multi_head_attention_forward as mha_mt
 
             return mha_mt(*args, **kwargs)
-        from maskedtensor import apply_reduction
-        from maskedtensor import is_reduction
+        from maskedtensor import apply_reduction, is_reduction
 
         if is_reduction(func):
             return apply_reduction(func, *args, **kwargs)
@@ -237,32 +237,27 @@ class MaskedTensor(torch.Tensor):
     def __torch_dispatch__(cls, func, types, args, kwargs):
         func = func.overloadpacket
 
-        from maskedtensor import apply_reduction
-        from maskedtensor import is_reduction
+        from maskedtensor import apply_reduction, is_reduction
 
         if is_reduction(func):
             return apply_reduction(func, *args, **kwargs)
 
-        from maskedtensor import apply_pass_through_fn
-        from maskedtensor import is_pass_through_fn
+        from maskedtensor import apply_pass_through_fn, is_pass_through_fn
 
         if is_pass_through_fn(func):
             return apply_pass_through_fn(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_unary
-        from maskedtensor import is_native_unary
+        from maskedtensor import apply_native_unary, is_native_unary
 
         if is_native_unary(func):
             return apply_native_unary(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_binary
-        from maskedtensor import is_native_binary
+        from maskedtensor import apply_native_binary, is_native_binary
 
         if is_native_binary(func):
             return apply_native_binary(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_matmul
-        from maskedtensor import is_native_matmul
+        from maskedtensor import apply_native_matmul, is_native_matmul
 
         if is_native_matmul(func):
             return apply_native_matmul(func, *args, **kwargs)

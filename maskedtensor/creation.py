@@ -1,10 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import math
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 import torch
-from torch.nn.functional import linear, dropout
+from torch.nn.functional import dropout, linear
 
 from .core import MaskedTensor
 

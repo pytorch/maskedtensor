@@ -67,8 +67,7 @@ def torch_matmul(func_name):
     func = getattr(torch.ops.aten, func_name)
 
     def matmul(input0, input1):
-        from maskedtensor import MaskedTensor
-        from maskedtensor import is_masked_tensor
+        from maskedtensor import is_masked_tensor, MaskedTensor
 
         logging.debug("Calling matmul with type({type(input0)}, {type(input1)})")
         if is_masked_tensor(input0) and is_masked_tensor(input1):

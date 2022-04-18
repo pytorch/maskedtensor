@@ -2,7 +2,7 @@
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
+from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 BINARY_NAMES = [
     "add",
@@ -122,7 +122,7 @@ def torch_binary(fn_name):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
-        if args[0].is_sparse_coo() != args[1].is_sparse_coo():
+        if args[0].layout != args[1].layout:
             raise ValueError(
                 "Inputs should match sparsity/density. If you need support this, please open an issue on Github."
             )
@@ -130,7 +130,7 @@ def torch_binary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         result_mask = get_at_least_one_mask(*args[:2])
-        if args[0].is_sparse_coo():
+        if args[0].layout == torch.sparse_coo:
             if not tensors_match(data_args[0].indices(), data_args[1].indices()):
                 raise ValueError(
                     "Sparse indices must match. If you need support for this, please open an issue on Github."
