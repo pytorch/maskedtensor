@@ -168,7 +168,18 @@ def torch_inplace_binary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        result_data = fn(*data_args)
+        if args[0].layout == torch.sparse_coo:
+            if not tensors_match(data_args[0].indices(), data_args[1].indices()):
+                raise ValueError(
+                    "Sparse indices must match. If you need support for this, please open an issue on Github."
+                )
+            i = data_args[0].indices()
+            data_args[0] = data_args[0].values()
+            data_args[1] = data_args[1].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_coo_tensor(i, v)
+        else:
+            result_data = fn(*data_args)
 
         from maskedtensor import is_masked_tensor
 

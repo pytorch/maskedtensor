@@ -118,7 +118,7 @@ def torch_unary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        if args[0].is_sparse_coo():
+        if args[0].layout == torch.sparse_coo:
             s = data_args[0].size()
             data_args[0] = data_args[0].coalesce()
             i = data_args[0].indices()
@@ -147,7 +147,7 @@ def torch_inplace_unary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        if data_args[0].is_sparse_coo():
+        if data_args[0].layout == torch.sparse_coo:
             s = data_args[0].size()
             i = data_args[0].indices()
             data_args[0] = data_args[0].values()
