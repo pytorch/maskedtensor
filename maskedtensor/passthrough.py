@@ -1,7 +1,4 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
-
-import torch
-
 """
 These are functions that should simply be applied to both mask and data.
 
@@ -9,6 +6,9 @@ Take select or stack as an example. This operation can be applied to
 both the mask and data of a MaskedTensor and the result wrapped into
 a new MaskedTensor as a result.
 """
+
+import torch
+
 PASSTHROUGH_FNS = [
     torch.ops.aten.select,
     torch.ops.aten.transpose,

@@ -15,6 +15,7 @@ from torch.testing._internal.common_utils import (
     TestCase,
     run_tests,
 )
+from common_utils import _compare_mt_t
 
 
 def is_unary(op):
@@ -35,19 +36,7 @@ MASKEDTENSOR_FLOAT_TYPES = {
 }
 
 
-def _compare_mt_t(mt_result, t_result):
-    mask = mt_result.masked_mask
-    mt_result_data = mt_result.masked_data
-    if mask.layout == torch.sparse_coo:
-        mask = mask.to_dense()
-    if mt_result_data.layout == torch.sparse_coo:
-        mt_result_data = mt_result_data.to_dense()
-    a = t_result.detach().masked_fill_(~mask, 0)
-    b = mt_result_data.masked_fill_(~mask, 0)
-    assert torch.allclose(a, b)
-
-
-def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
+def _test_native_masked_result_equality(device, dtype, op, is_sparse=False):
     samples = op.sample_inputs(device, dtype, requires_grad=True)
 
     for sample in samples:
@@ -101,15 +90,15 @@ class TestOperators(TestCase):
         }
         if op.name == "round" and op.variant_test_name in skip_variants:
             return
-        test_native_masked_result_equality(device, dtype, op)
+        _test_native_masked_result_equality(device, dtype, op)
 
     @ops(mt_binary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
     def test_binary_core(self, device, dtype, op):
-        test_native_masked_result_equality(device, dtype, op)
+        _test_native_masked_result_equality(device, dtype, op)
 
     @ops(additional_op_db, allowed_dtypes=(torch.float,))
     def test_maskedtensor_result(self, device, dtype, op):
-        test_native_masked_result_equality(device, dtype, op)
+        _test_native_masked_result_equality(device, dtype, op)
 
     @ops(mt_unary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
     def test_unary_core_sparse(self, device, dtype, op):
@@ -121,15 +110,15 @@ class TestOperators(TestCase):
         }
         if op.name == "round" and op.variant_test_name in skip_variants:
             return
-        test_native_masked_result_equality(device, dtype, op, True)
+        _test_native_masked_result_equality(device, dtype, op, True)
 
     @ops(mt_binary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
     def test_binary_core_sparse(self, device, dtype, op):
-        test_native_masked_result_equality(device, dtype, op, True)
+        _test_native_masked_result_equality(device, dtype, op, True)
 
     @ops(additional_op_db, allowed_dtypes=(torch.float,))
     def test_maskedtensor_results_sparse(self, device, dtype, op):
-        test_native_masked_result_equality(device, dtype, op, True)
+        _test_native_masked_result_equality(device, dtype, op, True)
 
 
 only_for = ("cpu", "cuda")

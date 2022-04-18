@@ -57,6 +57,7 @@ def multi_head_attention_forward(
     v_proj_weight,
     static_k,
     static_v,
+    average_attn_weights,
 ):
     # set up shape vars
     tgt_len, bsz, embed_dim = query.shape
@@ -132,6 +133,8 @@ def multi_head_attention_forward(
     if need_weights:
         # average attention weights over heads
         attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
-        return attn_output, attn_output_weights.sum(dim=1) / num_heads
+        if average_attn_weights:
+            attn_output_weights = attn_output_weights.sum(dim=1) / num_heads
+        return attn_output, attn_output_weights
     else:
         return attn_output, None
