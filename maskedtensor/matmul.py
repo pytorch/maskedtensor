@@ -23,8 +23,8 @@ class MaskedBmm(torch.autograd.Function):
         ctx.mark_non_differentiable(attn_mask, k_mask)
         ctx.save_for_backward(attn_mask, k_mask, q, k)
         attn = torch.bmm(q, k)
-        return_mask = attn_mask.expand_as(attn.masked_data)
-        return masked_tensor(attn.masked_data + return_mask, return_mask == 0)
+        return_mask = attn_mask.expand_as(attn.masked_data)  # type: ignore[attr-defined]
+        return masked_tensor(attn.masked_data + return_mask, return_mask == 0)  # type: ignore[attr-defined]
 
     @staticmethod
     def backward(ctx, grad):
@@ -36,7 +36,7 @@ class MaskedBmm(torch.autograd.Function):
 
         q_trans = q.transpose(1, 2)
         k_grad = torch.bmm(q_trans, grad)
-        k_grad = masked_tensor(k_grad.masked_data, k_mask)
+        k_grad = masked_tensor(k_grad.masked_data, k_mask)  # type: ignore[attr-defined]
 
         return q_grad, k_grad, None
 
