@@ -69,7 +69,7 @@ UNARY_NAMES = [
 
 INPLACE_UNARY_NAMES = [
     n + "_"
-    for n in (list(set(UNARY_NAMES) - set(["angle", "positive", "signbit", "isnan"])))
+    for n in (list(set(UNARY_NAMES) - {"angle", "positive", "signbit", "isnan"}))
 ]
 
 # Explicitly tracking functions we know are currently not supported

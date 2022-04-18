@@ -1,4 +1,5 @@
 import torch
+from common_utils import _compare_mt_t
 from maskedtensor import masked_tensor
 from maskedtensor.binary import BINARY_NAMES
 from maskedtensor.unary import UNARY_NAMES
@@ -8,14 +9,10 @@ from torch.testing._internal.common_device_type import (
     ops,
 )
 from torch.testing._internal.common_methods_invocations import (
-    unary_ufuncs,
     binary_ufuncs,
+    unary_ufuncs,
 )
-from torch.testing._internal.common_utils import (
-    TestCase,
-    run_tests,
-)
-from common_utils import _compare_mt_t
+from torch.testing._internal.common_utils import run_tests, TestCase
 
 
 def is_unary(op):
@@ -61,10 +58,9 @@ def _test_native_masked_result_equality(device, dtype, op, is_sparse=False):
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(
-                arg.to_sparse_coo() if is_sparse else arg,
-                mask
-            ) if torch.is_tensor(arg) else arg
+            masked_tensor(arg.to_sparse_coo() if is_sparse else arg, mask)
+            if torch.is_tensor(arg)
+            else arg
             for arg in sample_args
         ]
 

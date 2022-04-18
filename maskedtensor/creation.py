@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
+
 from .core import MaskedTensor
 
 Tensor = torch.Tensor

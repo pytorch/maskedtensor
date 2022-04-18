@@ -4,7 +4,7 @@
 import unittest
 
 import torch
-from maskedtensor import masked_tensor, masked_bmm
+from maskedtensor import masked_bmm, masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
 

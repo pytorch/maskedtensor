@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Implemented missing torch.nan* operators
+# Implemented missing torch.nan\* operators
 
 +++
 
@@ -35,7 +35,7 @@ from maskedtensor import as_masked_tensor
 
 +++
 
-This issue was closed by inclusion into [Issue 61474 - Implement missing torch.nan* operators](https://github.com/pytorch/pytorch/issues/61474). This proposes an alternative, which is to use masked tensors instead of introducing additional operators. Since nanmean [has already landed](https://github.com/pytorch/pytorch/issues/21987), we can use it as a comparison point.
+This issue was closed by inclusion into [Issue 61474 - Implement missing torch.nan\* operators](https://github.com/pytorch/pytorch/issues/61474). This proposes an alternative, which is to use masked tensors instead of introducing additional operators. Since nanmean [has already landed](https://github.com/pytorch/pytorch/issues/21987), we can use it as a comparison point.
 
 ```{code-cell} ipython3
 y = torch.arange(32).float()
