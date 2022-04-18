@@ -1,8 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
-from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 UNARY_NAMES = [
     "abs",
@@ -134,7 +132,7 @@ def torch_unary(fn_name):
 
 def torch_inplace_unary(fn_name):
     fn = getattr(torch.ops.aten, fn_name)
-    from .passthrough import _map_mt_args_kwargs, _wrap_result
+    from .passthrough import _map_mt_args_kwargs
 
     def unary_fn(*args, **kwargs):
         assert len(kwargs) == 0

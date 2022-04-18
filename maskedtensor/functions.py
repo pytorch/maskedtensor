@@ -5,8 +5,6 @@ import math
 import torch
 from torch.nn.functional import dropout, linear
 
-from .creation import masked_tensor
-
 Tensor = torch.Tensor
 
 
@@ -14,7 +12,6 @@ def _in_projection_packed(q, k, v, w, b):
     # if is_masked_tensor(k):
     #     assert not is_masked_tensor(q)
     #     assert not is_masked_tensor(v)
-    E = q.size(-1)
     w_q, w_k, w_v = w.chunk(3)
     assert b is None
     b_q = b_k = b_v = None

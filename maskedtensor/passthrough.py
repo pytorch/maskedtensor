@@ -1,8 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
-from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 """
 These are functions that should simply be applied to both mask and data.
@@ -26,6 +24,7 @@ PASSTHROUGH_FNS = [
     torch.ops.aten._reshape_alias,
     torch.ops.aten.cat,
 ]
+
 
 # TODO: tree_map doesn't cut it due to kwargs support for torch_function
 def _map_mt_args_kwargs(args, kwargs, map_fn):

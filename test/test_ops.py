@@ -1,7 +1,6 @@
 import torch
 from maskedtensor import masked_tensor
 from maskedtensor.binary import BINARY_NAMES
-from maskedtensor.core import MASKEDTENSOR_ALLOWED_DTYPES
 from maskedtensor.unary import UNARY_NAMES
 from maskedtensor_additional_op_db import additional_op_db, create_mask
 from torch.testing._internal.common_device_type import (
@@ -17,11 +16,14 @@ from torch.testing._internal.common_utils import (
     run_tests,
 )
 
+
 def is_unary(op):
     return op.name in UNARY_NAMES
 
+
 def is_binary(op):
     return op.name in BINARY_NAMES
+
 
 mt_unary_ufuncs = [op for op in unary_ufuncs if is_unary(op)]
 mt_binary_ufuncs = [op for op in binary_ufuncs if is_binary(op)]
@@ -31,6 +33,7 @@ MASKEDTENSOR_FLOAT_TYPES = {
     torch.float32,
     torch.float64,
 }
+
 
 def _compare_mt_t(mt_result, t_result):
     mask = mt_result.masked_mask
@@ -43,6 +46,7 @@ def _compare_mt_t(mt_result, t_result):
     b = mt_result_data.masked_fill_(~mask, 0)
     assert torch.allclose(a, b)
 
+
 def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
     samples = op.sample_inputs(device, dtype, requires_grad=True)
 
@@ -53,7 +57,7 @@ def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
             mask = create_mask(input.shape, device)
         else:
             mask = sample_kwargs.pop("mask")
-        
+
         if is_sparse:
             input = input.to_sparse_coo()
             mask = mask.to_sparse_coo()
@@ -84,6 +88,7 @@ def test_native_masked_result_equality(device, dtype, op, is_sparse=False):
         if is_binary(op):
             mt_result2 = op(mt, *mt_args, **sample_kwargs)
             _compare_mt_t(mt_result2, t_result)
+
 
 class TestOperators(TestCase):
     @ops(mt_unary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)

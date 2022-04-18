@@ -1,12 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import logging
-import math
 import os
 
 import torch
-from torch.nn.functional import linear
-
 from .creation import masked_tensor
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))

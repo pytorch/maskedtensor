@@ -5,7 +5,6 @@ import os
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
@@ -125,6 +124,7 @@ MASKEDTENSOR_ALLOWED_DTYPES = {
     torch.int32,
     torch.int64,
 }
+
 
 class MaskedTensor(torch.Tensor):
     @staticmethod
@@ -327,21 +327,6 @@ class MaskedTensor(torch.Tensor):
             assert masks_match(get_mask(args[0]), get_mask(args[1]))
             func(data, get_data(args[1]))
             return args[0]
-        if func in [torch.ops.aten._s_where]:
-            assert len(kwargs) == 0
-            assert len(args) == 3
-            assert torch.is_tensor(args[0])
-            mx = args[1]
-            my = args[2]
-            if not is_masked_tensor(mx):
-                mx = MaskedTensor(mx, torch.ones_like(mx).bool())
-            if not is_masked_tensor(my):
-                my = MaskedTensor(my, torch.ones_like(my).bool())
-            assert is_masked_tensor(mx)
-            assert is_masked_tensor(my)
-            new_data = func(args[0], get_data(mx), get_data(my))
-            new_mask = func(args[0], get_mask(mx), get_mask(my))
-            return MaskedTensor(new_data, new_mask)
         msg = (
             f"{func.__name__} is not implemented in __torch_dispatch__.\n"
             "If you would like this operator to be supported, please file an issue for a feature request at "

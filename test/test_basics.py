@@ -2,7 +2,6 @@
 
 import unittest
 
-import maskedtensor
 import torch
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
@@ -12,8 +11,8 @@ class TestMaskedTensor(TestCase):
     def test_add(self):
         data = torch.arange(5.0)
         mask = torch.tensor([True, True, False, True, False])
-        m0 = maskedtensor.masked_tensor(data, mask)
-        m1 = maskedtensor.masked_tensor(data, ~mask)
+        m0 = masked_tensor(data, mask)
+        m1 = masked_tensor(data, ~mask)
         self.assertRaises(ValueError, lambda: m0 + m1)
 
     def test_softmax(self):
@@ -25,15 +24,14 @@ class TestMaskedTensor(TestCase):
                 [True, True, False, False],
             ]
         )
-        mx = maskedtensor.masked_tensor(x, m, requires_grad=True)
+        mx = masked_tensor(x, m, requires_grad=True)
         ts = torch.softmax(mx, -1)
         ts.sum().backward()
         xinf = x.masked_fill(~m, float("-inf")).detach().clone().requires_grad_()
-        tsinf = torch.softmax(xinf, -1)
+        torch.softmax(xinf, -1)
 
     def test_mha_issue_41508(self):
         # https://github.com/pytorch/pytorch/issues/41508
-        import torch
 
         torch.manual_seed(0)
         attn_nn = torch.nn.MultiheadAttention(1, 1, bias=False)
@@ -62,7 +60,7 @@ class TestMaskedTensor(TestCase):
         )
         loss0 = output[0, :].sum()
 
-        x_mt = maskedtensor.masked_tensor(
+        x_mt = masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
         )
 
@@ -78,7 +76,7 @@ class TestMaskedTensor(TestCase):
         # It's an autograd thing.
         k_data = torch.tensor([4.0])
         k_mask = torch.tensor([True])
-        k = maskedtensor.masked_tensor(k_data[0], k_mask[0], requires_grad=True)
+        k = masked_tensor(k_data[0], k_mask[0], requires_grad=True)
         w = torch.tensor([1.0, 2.0], requires_grad=True)
         w_q, w_k = w.chunk(2)
         o0 = k + w_k
