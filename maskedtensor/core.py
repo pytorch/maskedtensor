@@ -5,7 +5,7 @@ import os
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
+from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
@@ -201,8 +201,7 @@ class MaskedTensor(torch.Tensor):
             from .functions import multi_head_attention_forward as mha_mt
 
             return mha_mt(*args, **kwargs)
-        from maskedtensor import apply_reduction
-        from maskedtensor import is_reduction
+        from maskedtensor import apply_reduction, is_reduction
 
         if is_reduction(func):
             return apply_reduction(func, *args, **kwargs)
@@ -228,32 +227,29 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
-        from maskedtensor import apply_reduction
-        from maskedtensor import is_reduction
+        func = func.overloadpacket
+
+        from maskedtensor import apply_reduction, is_reduction
 
         if is_reduction(func):
             return apply_reduction(func, *args, **kwargs)
 
-        from maskedtensor import apply_pass_through_fn
-        from maskedtensor import is_pass_through_fn
+        from maskedtensor import apply_pass_through_fn, is_pass_through_fn
 
         if is_pass_through_fn(func):
             return apply_pass_through_fn(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_unary
-        from maskedtensor import is_native_unary
+        from maskedtensor import apply_native_unary, is_native_unary
 
         if is_native_unary(func):
             return apply_native_unary(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_binary
-        from maskedtensor import is_native_binary
+        from maskedtensor import apply_native_binary, is_native_binary
 
         if is_native_binary(func):
             return apply_native_binary(func, *args, **kwargs)
 
-        from maskedtensor import apply_native_matmul
-        from maskedtensor import is_native_matmul
+        from maskedtensor import apply_native_matmul, is_native_matmul
 
         if is_native_matmul(func):
             return apply_native_matmul(func, *args, **kwargs)

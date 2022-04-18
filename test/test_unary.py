@@ -11,7 +11,7 @@ import maskedtensor
 import pytest
 import torch
 from maskedtensor import masked_tensor
-from maskedtensor.unary import NATIVE_UNARY_FNS, NATIVE_INPLACE_UNARY_FNS
+from maskedtensor.unary import NATIVE_INPLACE_UNARY_FNS, NATIVE_UNARY_FNS
 
 
 def _get_test_data(fn_name):

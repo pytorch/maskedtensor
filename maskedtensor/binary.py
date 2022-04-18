@@ -2,7 +2,7 @@
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_unflatten, tree_map
+from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 BINARY_NAMES = [
     "add",

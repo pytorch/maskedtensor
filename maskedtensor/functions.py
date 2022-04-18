@@ -3,7 +3,7 @@
 import math
 
 import torch
-from torch.nn.functional import linear, dropout
+from torch.nn.functional import dropout, linear
 
 from .creation import masked_tensor
 
