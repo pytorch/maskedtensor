@@ -137,7 +137,6 @@ additional_op_db.extend(
             backward_dtypesIfCUDA=all_types_and_complex_and(
                 torch.bool, torch.half, torch.bfloat16
             ),
-            safe_casts_outputs=True,
             decorators=(precisionOverride({torch.bfloat16: 5e-2}),),
             supports_inplace_autograd=False,
             supports_forward_ad=True,
@@ -152,7 +151,6 @@ additional_op_db.extend(
             decorators=(
                 precisionOverride({torch.float16: 1e-2, torch.bfloat16: 1e-2}),
             ),
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             supports_sparse_csr=True,
@@ -167,7 +165,6 @@ additional_op_db.extend(
             supports_sparse_csr=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
             dtypes=all_types_and_complex_and(torch.bool, torch.bfloat16),
             dtypesIfCUDA=all_types_and_complex_and(
                 torch.bool, torch.half, torch.bfloat16
@@ -193,7 +190,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             decorators=(precisionOverride({torch.bfloat16: 5e-2}),),
             supports_inplace_autograd=False,
             supports_forward_ad=True,
@@ -216,7 +212,6 @@ additional_op_db.extend(
             supports_sparse=True,
             supports_sparse_csr=True,
             decorators=(precisionOverride({torch.bfloat16: 1e-2}),),
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "atanh",
@@ -228,7 +223,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             decorators=(precisionOverride({torch.bfloat16: 1e-2}),),
             supports_inplace_autograd=False,
             supports_forward_ad=True,
@@ -299,7 +293,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             assert_autodiffed=True,
             handles_large_floats=False,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             decorators=(precisionOverride({torch.bfloat16: 1e-2}),),
@@ -312,7 +305,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
@@ -330,7 +322,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "erf",
@@ -348,7 +339,6 @@ additional_op_db.extend(
             supports_sparse_csr=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "erfc",
@@ -363,7 +353,6 @@ additional_op_db.extend(
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "erfinv",
@@ -377,7 +366,6 @@ additional_op_db.extend(
             dtypes=all_types_and(torch.bool, torch.bfloat16),
             dtypesIfCUDA=all_types_and(torch.bool, torch.half),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             supports_sparse_csr=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
@@ -394,7 +382,6 @@ additional_op_db.extend(
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "exp2",
@@ -405,7 +392,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "expm1",
@@ -418,7 +404,6 @@ additional_op_db.extend(
             supports_fwgrad_bwgrad=True,
             supports_sparse=True,
             supports_sparse_csr=True,
-            safe_casts_outputs=True,
             assert_autodiffed=True,
         ),
         UnaryUfuncInfo(
@@ -466,7 +451,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "log",
@@ -478,7 +462,6 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             assert_autodiffed=True,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             decorators=(precisionOverride({torch.bfloat16: 5e-2}),),
@@ -494,7 +477,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
         ),
@@ -507,7 +489,6 @@ additional_op_db.extend(
             dtypesIfCUDA=all_types_and(torch.bool, torch.half, torch.bfloat16),
             sample_inputs_func=sample_inputs_unary,
             decorators=(precisionOverride({torch.bfloat16: 1e-1}),),
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             supports_sparse=True,
@@ -524,7 +505,6 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             assert_autodiffed=True,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             decorators=(precisionOverride({torch.bfloat16: 1e-1}),),
@@ -542,7 +522,6 @@ additional_op_db.extend(
             dtypes=all_types_and(torch.bool, torch.bfloat16),
             dtypesIfCUDA=all_types_and(torch.bool, torch.half, torch.bfloat16),
             sample_inputs_func=sample_inputs_logit,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "i0",
@@ -553,13 +532,12 @@ additional_op_db.extend(
             decorators=(
                 precisionOverride({torch.bfloat16: 3e-1, torch.float16: 5e-1}),
             ),
-            backward_dtypesIfCPU=floating_types(),
+            backward_dtypes=floating_types(),
             backward_dtypesIfCUDA=floating_types(),
             dtypesIfROCM=floating_types(),
             dtypes=all_types_and(torch.bool, torch.bfloat16),
             dtypesIfCUDA=all_types_and(torch.bool, torch.half, torch.bfloat16),
             sample_inputs_func=sample_inputs_i0_i1,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
         ),
@@ -627,7 +605,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "reciprocal",
@@ -637,7 +614,6 @@ additional_op_db.extend(
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            safe_casts_outputs=True,
         ),
         # To test reference numerics against multiple values of argument `decimals`,
         # we make multiple OpInfo entries with each entry corresponding to different value of decimals.
@@ -664,7 +640,6 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             decorators=(precisionOverride({torch.half: 5e-2}),),
-            safe_casts_outputs=True,
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
@@ -684,7 +659,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             assert_autodiffed=True,
@@ -730,7 +704,6 @@ additional_op_db.extend(
             assert_autodiffed=True,
             handles_large_floats=False,
             handles_complex_extremals=False,
-            safe_casts_outputs=True,
             supports_sparse=True,
             supports_sparse_csr=True,
             supports_forward_ad=True,
@@ -755,7 +728,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             handles_large_floats=False,
             handles_complex_extremals=False,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             decorators=(
@@ -770,7 +742,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            safe_casts_outputs=True,
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
@@ -793,7 +764,6 @@ additional_op_db.extend(
             supports_sparse_csr=True,
             supports_fwgrad_bwgrad=True,
             decorators=(precisionOverride({torch.bfloat16: 7e-2}),),
-            safe_casts_outputs=True,
             handles_complex_extremals=False,
         ),
         UnaryUfuncInfo(
@@ -816,7 +786,6 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             assert_autodiffed=True,
-            safe_casts_outputs=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             supports_sparse=True,
@@ -833,9 +802,8 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             # "tanh_backward_cpu" not implemented for 'BFloat16'
-            backward_dtypesIfCPU=all_types_and_complex_and(torch.bool, torch.bfloat16),
+            backward_dtypes=all_types_and_complex_and(torch.bool, torch.bfloat16),
             assert_autodiffed=True,
-            safe_casts_outputs=True,
             assert_jit_shape_analysis=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
