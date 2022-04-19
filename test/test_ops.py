@@ -96,6 +96,7 @@ class TestOperators(TestCase):
     def test_maskedtensor_result(self, device, dtype, op):
         _test_native_masked_result_equality(device, dtype, op)
 
+
 only_for = ("cpu", "cuda")
 instantiate_device_type_tests(TestOperators, globals(), only_for=only_for)
 

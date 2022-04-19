@@ -7,9 +7,9 @@
 
 import pytest
 import torch
+from common_utils import _compare_mt_t
 from maskedtensor import masked_tensor
 from maskedtensor.unary import NATIVE_INPLACE_UNARY_FNS, NATIVE_UNARY_FNS
-from common_utils import _compare_mt_t
 
 
 def _get_test_data(fn_name):

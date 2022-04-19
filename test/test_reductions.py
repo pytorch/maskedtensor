@@ -3,9 +3,9 @@
 import unittest
 
 import torch
+from common_utils import _compare_mts
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
-from common_utils import _compare_mts
 
 
 class TestMaskedTensorReductions(TestCase):
@@ -19,9 +19,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[0, 1, 2, 6], [3, 4, 5.0, 7]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(17.0), torch.tensor(True)), mt.sum()
-        )
+        _compare_mts(masked_tensor(torch.tensor(17.0), torch.tensor(True)), mt.sum())
         _compare_mts(
             masked_tensor(
                 torch.tensor([0.0, 4.0, 1.0, 13]),
@@ -41,9 +39,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[0, 1, 3, 2], [3, 4, 1.0, 4]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(2.5), torch.tensor(True)), mt.mean()
-        )
+        _compare_mts(masked_tensor(torch.tensor(2.5), torch.tensor(True)), mt.mean())
         _compare_mts(
             masked_tensor(
                 torch.tensor([0.0, 4.0, 1.0, 3]),
@@ -63,9 +59,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[0, 1, 3, -3], [3, -4, 1.0, 3]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(3.0), torch.tensor(True)), mt.amax()
-        )
+        _compare_mts(masked_tensor(torch.tensor(3.0), torch.tensor(True)), mt.amax())
         _compare_mts(
             masked_tensor(
                 torch.tensor([0.0, -4.0, 1.0, 3]),
@@ -85,9 +79,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[0, 1, 3, -3], [3, -4, 1.0, 3]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(-4.0), torch.tensor(True)), mt.amin()
-        )
+        _compare_mts(masked_tensor(torch.tensor(-4.0), torch.tensor(True)), mt.amin())
         _compare_mts(
             masked_tensor(
                 torch.tensor([0.0, -4.0, 1.0, -3]),
@@ -107,9 +99,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[0, 1, 3, 0.0], [float("nan"), 4, 1.0, 5.0]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(0.0), torch.tensor(True)), mt.prod()
-        )
+        _compare_mts(masked_tensor(torch.tensor(0.0), torch.tensor(True)), mt.prod())
         _compare_mts(
             masked_tensor(
                 torch.tensor([0.0, 4.0, 1.0, 0.0]),
@@ -129,9 +119,7 @@ class TestMaskedTensorReductions(TestCase):
         d = torch.tensor([[True, True, False, False], [False, True, True, True]])
         m = torch.tensor([[True, False, False, True], [False, True, False, True]])
         mt = masked_tensor(d, m)
-        _compare_mts(
-            masked_tensor(torch.tensor(False), torch.tensor(True)), mt.all()
-        )
+        _compare_mts(masked_tensor(torch.tensor(False), torch.tensor(True)), mt.all())
         _compare_mts(
             masked_tensor(
                 torch.tensor([True, True, True, False]),
