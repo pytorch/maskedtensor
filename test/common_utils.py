@@ -33,9 +33,9 @@ def _compare_mts(mt1, mt2):
 
 def tensors_match(a, b):
     if a.layout == b.layout == torch.sparse_coo:
-        a = a.to_dense()
-        b = b.to_dense()
-    return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
+        return tensors_match(a.values(), b.values()) and tensors_match(a.indices(), b.indices())
+    else:
+        return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
 
 
 def masks_match(a, b):
