@@ -33,7 +33,9 @@ def _compare_mts(mt1, mt2):
 
 def tensors_match(a, b):
     if a.layout == b.layout == torch.sparse_coo:
-        return tensors_match(a.values(), b.values()) and tensors_match(a.indices(), b.indices())
+        return tensors_match(a.values(), b.values()) and tensors_match(
+            a.indices(), b.indices()
+        )
     else:
         return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
 
