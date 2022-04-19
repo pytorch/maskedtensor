@@ -122,7 +122,6 @@ additional_op_db.extend(
                     {torch.float16: 1e-2, torch.bfloat16: 1e-1, torch.complex64: 1e-2}
                 ),
             ),
-            safe_casts_outputs=True,
         ),
         UnaryUfuncInfo(
             "acosh",
