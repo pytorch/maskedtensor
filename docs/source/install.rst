@@ -37,5 +37,3 @@ and the masked tensor output should look like:
         [      --,       --,   6.0000]
     ]
     )
-
-

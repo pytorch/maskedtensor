@@ -3,7 +3,6 @@
 import argparse
 import distutils.command.clean
 import glob
-import io
 import os
 import shutil
 import subprocess
@@ -67,17 +66,9 @@ def get_parser():
     return parser
 
 
-def read(*names, **kwargs):
-    with io.open(
-        os.path.join(os.path.dirname(__file__), *names),
-        encoding=kwargs.get("encoding", "utf8"),
-    ) as fp:
-        return fp.read()
-
-
 class clean(distutils.command.clean.clean):
     def run(self):
-        with open(".gitignore", "r") as f:
+        with open(".gitignore") as f:
             ignores = f.read()
             for wildcard in filter(None, ignores.split("\n")):
                 for filename in glob.glob(wildcard):

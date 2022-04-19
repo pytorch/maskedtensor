@@ -1,14 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
-import math
-from typing import List, Optional, Tuple
-
 import torch
-from torch.nn.functional import dropout, linear
 
 from .core import MaskedTensor
 
-Tensor = torch.Tensor
+
 # Basic factory function
 def masked_tensor(data, mask, requires_grad=False):
     from maskedtensor import is_masked_tensor
