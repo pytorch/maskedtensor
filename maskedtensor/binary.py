@@ -1,8 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
-from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 BINARY_NAMES = [
     "add",
@@ -55,17 +53,15 @@ INPLACE_BINARY_NAMES = [
     for n in (
         list(
             set(BINARY_NAMES)
-            - set(
-                [
-                    "logaddexp",
-                    "logaddexp2",
-                    "equal",
-                    "fmin",
-                    "minimum",
-                    "maximum",
-                    "fmax",
-                ]
-            )
+            - {
+                "logaddexp",
+                "logaddexp2",
+                "equal",
+                "fmin",
+                "minimum",
+                "maximum",
+                "fmax",
+            }
         )
     )
 ]
@@ -128,7 +124,7 @@ def torch_binary(fn_name):
 
 def torch_inplace_binary(fn_name):
     fn = getattr(torch.ops.aten, fn_name)
-    from .passthrough import _map_mt_args_kwargs, _wrap_result
+    from .passthrough import _map_mt_args_kwargs
 
     def binary_fn(*args, **kwargs):
         assert len(kwargs) == 0
@@ -146,8 +142,6 @@ def torch_inplace_binary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         result_data = fn(*data_args)
-
-        from maskedtensor import is_masked_tensor
 
         args[0]._set_data_mask(result_data, mask_args[0])
         return args[0]

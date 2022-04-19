@@ -178,7 +178,7 @@ print("\n(data0 + data1).sum(0):\n", (data0.sum(0) + data1.sum(0)))
 
 +++ {"id": "FjSyaqqKgvYh"}
 
-Sum and addition should be associative. However with NumPy's semantics we allow them not to be. Instead of allowing these semantics, at least in the case of addition and sum, we could ask the user to fill the MaskedTensor's undefined elements with 0 values or as in the MaskedTensor addition examples above be very specific about the semantics used. 
+Sum and addition should be associative. However with NumPy's semantics we allow them not to be. Instead of allowing these semantics, at least in the case of addition and sum, we could ask the user to fill the MaskedTensor's undefined elements with 0 values or as in the MaskedTensor addition examples above be very specific about the semantics used.
 
 While it's obviously possible to support this, we think we should cover other operators first and really make sure we can't avoid this behavior via other means.
 

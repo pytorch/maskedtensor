@@ -5,7 +5,6 @@ import os
 
 import torch
 from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
@@ -121,7 +120,7 @@ class MaskedTensor(torch.Tensor):
         kwargs["dtype"] = data.dtype
         kwargs["layout"] = data.layout
         kwargs["requires_grad"] = requires_grad
-        return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
+        return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
     def _validate_members(self):
         data = self.masked_data
@@ -258,7 +257,7 @@ class MaskedTensor(torch.Tensor):
         if func in [torch.ops.aten.mm, torch.ops.aten.bmm]:
             len(args) == 2
             len(kwargs) == 0
-            return cls.matmul(args[0], args[1], func)
+            return cls.matmul(args[0], args[1], func)  # type: ignore[call-arg]
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
         mask = get_mask(args[0])
