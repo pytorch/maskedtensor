@@ -1,9 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
+
 from maskedtensor import MaskedTensor
-from torch.overrides import get_default_nowrap_functions
-from torch.utils._pytree import tree_flatten, tree_map, tree_unflatten
 
 
 def masked_all_all(data, mask=None):

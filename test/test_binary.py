@@ -5,10 +5,8 @@
 # This source code is licensed under the BSD license found in the
 # LICENSE file in the root directory of this source tree.
 
-import logging
-
-import maskedtensor
 import pytest
+
 import torch
 from maskedtensor import masked_tensor
 from maskedtensor.binary import NATIVE_BINARY_FNS, NATIVE_INPLACE_BINARY_FNS

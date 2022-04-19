@@ -8,13 +8,10 @@ from torch.testing._internal.common_device_type import (
     ops,
 )
 from torch.testing._internal.common_methods_invocations import (
-    unary_ufuncs,
     binary_ufuncs,
+    unary_ufuncs,
 )
-from torch.testing._internal.common_utils import (
-    TestCase,
-    run_tests,
-)
+from torch.testing._internal.common_utils import run_tests, TestCase
 
 
 def is_unary(op):

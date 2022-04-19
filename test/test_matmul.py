@@ -1,10 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
+# flake8: noqa
 
 import unittest
 
-import maskedtensor
 import torch
-from maskedtensor import masked_tensor
+from maskedtensor import masked_bmm, masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
 
@@ -17,7 +17,7 @@ class TestMaskedTensorMatmul(TestCase):
                 [False, True, True],
             ]
         )
-        x_mt = maskedtensor.masked_tensor(
+        x_mt = masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
         )
         x = x.masked_fill(~x_mt.mask(), 0)
@@ -34,7 +34,7 @@ class TestMaskedTensorMatmul(TestCase):
                 [False, True, True],
             ]
         )
-        x_mt = maskedtensor.masked_tensor(
+        x_mt = masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
         )
         y = torch.bmm(x, x_t)
@@ -49,7 +49,7 @@ class TestMaskedTensorMatmul(TestCase):
             ]
         )
         x = torch.arange(4 * 3 * 2).reshape(4, 3, 2).float().requires_grad_()
-        x_mt = maskedtensor.masked_tensor(
+        x_mt = masked_tensor(
             x,
             ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x)),
             requires_grad=True,
@@ -62,7 +62,7 @@ class TestMaskedTensorMatmul(TestCase):
             ]
         )
         attn_mask = attn_mask_bool.float().masked_fill_(attn_mask_bool, float("-inf"))
-        v = maskedtensor.masked_bmm(x, x_mt.transpose(1, 2), attn_mask)
+        v = masked_bmm(x, x_mt.transpose(1, 2), attn_mask)
         v.sum().backward()
         x = torch.arange(4 * 3 * 2).reshape(4, 3, 2).float().requires_grad_()
         x0 = torch.arange(4 * 3 * 2).reshape(4, 3, 2).float().requires_grad_()
@@ -81,7 +81,7 @@ class TestMaskedTensorMatmul(TestCase):
                 [False, True, False, True],
             ]
         )
-        x_mt = maskedtensor.masked_tensor(
+        x_mt = masked_tensor(
             x, ~(key_padding_mask.transpose(0, 1).unsqueeze(-1).expand_as(x))
         )
 
