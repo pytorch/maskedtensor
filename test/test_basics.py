@@ -29,6 +29,17 @@ class TestMaskedTensor(TestCase):
         ts.sum().backward()
         xinf = x.masked_fill(~m, float("-inf")).detach().clone().requires_grad_()
         torch.softmax(xinf, -1)
+    
+    def test_where(self):
+        # http://pytorch.org/maskedtensor/main/notebooks/nan_grad.html
+        x = torch.tensor([-10., -5, 0, 5, 10, 50, 60, 70,
+                        80, 90, 100], requires_grad=True)
+        mask = x < 0
+        mx = masked_tensor(x, mask, requires_grad=True)
+        my = masked_tensor(torch.ones_like(x), ~mask, requires_grad=True)
+        y = torch.where(mask, torch.exp(mx), my)
+        s = y.sum()
+        s.backward()
 
     def test_mha_issue_41508(self):
         # https://github.com/pytorch/pytorch/issues/41508
