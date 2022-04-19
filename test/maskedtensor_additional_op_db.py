@@ -114,8 +114,6 @@ additional_op_db.extend(
                 torch.bool, torch.half, torch.bfloat16
             ),
             sample_inputs_func=sample_inputs_unary,
-            # "rsqrt_cpu" not implemented for 'BFloat16'
-            backward_dtypesIfCPU=all_types_and_complex_and(torch.bool, torch.bfloat16),
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,

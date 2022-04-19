@@ -82,7 +82,7 @@ class clean(distutils.command.clean.clean):
 
 
 requirements = [
-    "torch>=1.11,<=1.12",
+    "torch>=1.12",
 ]
 readme = open("README.md").read()
 
