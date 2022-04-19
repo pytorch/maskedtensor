@@ -10,6 +10,7 @@ MaskedTensor is a prototype library that is part of the [PyTorch](https://pytorc
 ### Binaries
 
 To install the official MaskedTensor via pip, use the following command:
+
 ```
 pip install maskedtensor
 ```
@@ -36,7 +37,7 @@ Please follow the instructions in the [docs README](https://github.com/pytorch/m
 
 ### Notebooks
 
-For an introduction and instructions on how to use MaskedTensors and what they are useful for, there are a nubmer of  tutorials on the [MaskedTensor website](https://pytorch.org/maskedtensor/main/index.html).
+For an introduction and instructions on how to use MaskedTensors and what they are useful for, there are a nubmer of tutorials on the [MaskedTensor website](https://pytorch.org/maskedtensor/main/index.html).
 
 ## License
 

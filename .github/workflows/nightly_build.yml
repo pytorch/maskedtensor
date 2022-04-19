@@ -8,7 +8,7 @@ on:
   # 4. Use the Branch dropdown to select the release/* branch
   # 5. Click Run workflow
   schedule:
-    - cron:  '15 11 * * *'
+    - cron: "15 11 * * *"
   workflow_dispatch:
 
 jobs:
