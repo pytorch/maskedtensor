@@ -32,6 +32,9 @@ def masks_match(a, b):
 
 
 def masked_tensor_str(data, mask, formatter):
+    if data.layout == torch.sparse_coo:
+        data = data.to_dense()
+        mask = mask.to_dense()
     if data.dim() == 1:
         formatted_elements = [
             formatter.format(d.item()) if isinstance(d.item(), float) else str(d.item())
@@ -126,6 +129,8 @@ class MaskedTensor(torch.Tensor):
         data = self.masked_data
         mask = self.masked_mask
         assert type(data) == type(mask)
+        assert data.layout == mask.layout
+        assert data.layout in [torch.strided, torch.sparse_coo]
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
         assert (
@@ -144,13 +149,14 @@ class MaskedTensor(torch.Tensor):
 
     def __init__(self, data, mask, requires_grad=False):
         logging.debug(f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
+        assert data.layout == mask.layout
+        if data.layout == torch.strided:
+            # .contiguous cannot be overwritten so it's always contiguous
+            data = data.contiguous()
+            mask = mask.contiguous()
 
-        # .contiguous cannot be overwritten so it's always contiguous
-        data = data.contiguous()
-        mask = mask.contiguous()
         logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
         logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
-        logging.debug(f"data.stride(): {data.stride()} mask.stride(): {mask.stride()}")
         logging.debug(f"data: {data}")
         logging.debug(f"mask: {mask}")
         # Have to pick awkward names to not conflict with existing fields such as data
@@ -161,9 +167,10 @@ class MaskedTensor(torch.Tensor):
     def _set_data_mask(self, data, mask):
         # This method is regrettably necessary for in-place operations
 
-        # .contiguous cannot be overwritten so it's always contiguous
-        data = data.contiguous()
-        mask = mask.contiguous()
+        if data.layout == torch.strided:
+            # .contiguous cannot be overwritten so it's always contiguous
+            data = data.contiguous()
+            mask = mask.contiguous()
 
         self.masked_data = data
         self.masked_mask = mask
@@ -350,3 +357,10 @@ class MaskedTensor(torch.Tensor):
 
     def mask(self):
         return self.masked_mask
+
+    def is_sparse_coo(self):
+        return self.layout == torch.sparse_coo
+
+    # Update later to support more sparse layouts
+    def is_sparse(self):
+        return self.is_sparse_coo()

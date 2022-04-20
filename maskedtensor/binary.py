@@ -75,13 +75,20 @@ def get_mask(a):
     return None
 
 
+def tensors_match(a, b):
+    if a.layout == b.layout == torch.sparse_coo:
+        a = a.to_dense()
+        b = b.to_dense()
+    return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
+
+
 def masks_match(a, b):
     from maskedtensor import is_masked_tensor
 
     if is_masked_tensor(a) and is_masked_tensor(b):
         mask_a = get_mask(a)
         mask_b = get_mask(b)
-        return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
+        return tensors_match(mask_a, mask_b)
     return True
 
 
@@ -111,12 +118,28 @@ def torch_binary(fn_name):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
+        if args[0].layout != args[1].layout:
+            raise ValueError(
+                "Inputs should match sparsity/density. If you need support this, please open an issue on Github."
+            )
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        result_data = fn(*data_args)
         result_mask = get_at_least_one_mask(*args[:2])
-        result_mask = result_mask.expand_as(result_data)
+        if args[0].layout == torch.sparse_coo:
+            if not tensors_match(data_args[0].indices(), data_args[1].indices()):
+                raise ValueError(
+                    "Sparse indices must match. If you need support for this, please open an issue on Github."
+                )
+            i = data_args[0].indices()
+            data_args[0] = data_args[0].values()
+            data_args[1] = data_args[1].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_coo_tensor(i, v)
+        else:
+            result_data = fn(*data_args)
+            # sparse tensors don't have strides
+            result_mask = result_mask.expand_as(result_data)
         return _wrap_result(result_data, result_mask)
 
     return binary_fn
@@ -141,7 +164,18 @@ def torch_inplace_binary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        result_data = fn(*data_args)
+        if args[0].layout == torch.sparse_coo:
+            if not tensors_match(data_args[0].indices(), data_args[1].indices()):
+                raise ValueError(
+                    "Sparse indices must match. If you need support for this, please open an issue on Github."
+                )
+            i = data_args[0].indices()
+            data_args[0] = data_args[0].values()
+            data_args[1] = data_args[1].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_coo_tensor(i, v)
+        else:
+            result_data = fn(*data_args)
 
         args[0]._set_data_mask(result_data, mask_args[0])
         return args[0]
