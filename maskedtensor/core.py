@@ -317,7 +317,7 @@ class MaskedTensor(torch.Tensor):
             assert masks_match(get_mask(args[0]), get_mask(args[1]))
             func(data, get_data(args[1]))
             return args[0]
-        if func in [torch.ops.aten._s_where]:
+        if func in [torch.ops.aten.where]:
             assert len(kwargs) == 0
             assert len(args) == 3
             assert torch.is_tensor(args[0])

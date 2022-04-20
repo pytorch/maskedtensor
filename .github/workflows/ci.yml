@@ -50,6 +50,9 @@ jobs:
         run: pip3 install expecttest numpy pytest
       - name: Build MaskedTensor
         run: python setup.py develop
+      - name: Run DataPipes tests with pytest
+        if: ${{ ! contains(github.event.pull_request.labels.*.name, 'ciflow/slow') }}
+        run: pytest --no-header -v test
       - name: Run DataPipes tests with pytest (including slow tests)
         if: ${{ contains(github.event.pull_request.labels.*.name, 'ciflow/slow') }}
         run: pytest --no-header -v test

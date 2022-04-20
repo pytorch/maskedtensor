@@ -7,6 +7,7 @@
 
 import pytest
 import torch
+from common_utils import _compare_mt_t
 from maskedtensor import masked_tensor
 from maskedtensor.unary import NATIVE_INPLACE_UNARY_FNS, NATIVE_UNARY_FNS
 
@@ -51,14 +52,6 @@ def _get_sample_args(fn_name, data, mask):
         t_args += [2.0]
         mt_args += [2.0]
     return t_args, mt_args
-
-
-def _compare_mt_t(mt_result, t_result):
-    mask = mt_result.masked_mask
-    mt_result_data = mt_result.masked_data
-    a = t_result.masked_fill_(~mask, 0)
-    b = mt_result_data.masked_fill_(~mask, 0)
-    assert torch.allclose(a, b)
 
 
 @pytest.mark.parametrize("fn", NATIVE_UNARY_FNS)

@@ -7,6 +7,7 @@
 
 import pytest
 import torch
+from common_utils import _compare_mt_t
 from maskedtensor import masked_tensor
 from maskedtensor.binary import NATIVE_BINARY_FNS, NATIVE_INPLACE_BINARY_FNS
 
@@ -43,14 +44,6 @@ def _yield_sample_args(fn_name, data0, data1, mask):
     t_args = [data0, data1]
     mt_args = [mt0, data1]
     yield t_args, mt_args
-
-
-def _compare_mt_t(mt_result, t_result):
-    mask = mt_result.masked_mask
-    mt_result_data = mt_result.masked_data
-    a0 = t_result.masked_fill_(~mask, 0)
-    b0 = mt_result_data.masked_fill_(~mask, 0)
-    assert torch.allclose(a0, b0)
 
 
 @pytest.mark.parametrize("fn", NATIVE_BINARY_FNS)
