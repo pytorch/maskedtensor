@@ -96,6 +96,25 @@ class TestOperators(TestCase):
     def test_maskedtensor_result(self, device, dtype, op):
         _test_native_masked_result_equality(device, dtype, op)
 
+    @ops(mt_unary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
+    def test_unary_core_sparse(self, device, dtype, op):
+        # Skip tests that don't have len(kwargs) == 0
+        skip_variants = {
+            "decimals_0",
+            "decimals_3",
+            "decimals_neg_3",
+        }
+        if op.name == "round" and op.variant_test_name in skip_variants:
+            return
+        _test_native_masked_result_equality(device, dtype, op, True)
+
+    @ops(mt_binary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
+    def test_binary_core_sparse(self, device, dtype, op):
+        _test_native_masked_result_equality(device, dtype, op, True)
+
+    @ops(additional_op_db, allowed_dtypes=(torch.float,))
+    def test_maskedtensor_results_sparse(self, device, dtype, op):
+        _test_native_masked_result_equality(device, dtype, op, True)
 
 only_for = ("cpu", "cuda")
 instantiate_device_type_tests(TestOperators, globals(), only_for=only_for)
