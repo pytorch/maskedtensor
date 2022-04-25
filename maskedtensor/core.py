@@ -233,7 +233,6 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
-        print("func: ", func)
         func = func.overloadpacket
 
         from maskedtensor import apply_reduction, is_reduction
