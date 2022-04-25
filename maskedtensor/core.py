@@ -233,6 +233,7 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
+        print("func: ", func)
         func = func.overloadpacket
 
         from maskedtensor import apply_reduction, is_reduction
@@ -277,7 +278,7 @@ class MaskedTensor(torch.Tensor):
             assert mask
             return func(data)
         if func is torch.ops.aten._to_copy:
-            return MaskedTensor(func(data, *args[1:]), mask)
+            return MaskedTensor(func(data, *args[1:], **kwargs), mask)
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
