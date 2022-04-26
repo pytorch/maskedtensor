@@ -277,7 +277,7 @@ class MaskedTensor(torch.Tensor):
             assert mask
             return func(data)
         if func is torch.ops.aten._to_copy:
-            return MaskedTensor(func(data, *args[1:]), mask)
+            return MaskedTensor(func(data, *args[1:], **kwargs), mask)
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
