@@ -3,6 +3,7 @@
 import unittest
 
 import torch
+from common_utils import _compare_mts, _generate_sample_data
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
@@ -95,6 +96,16 @@ class TestMaskedTensor(TestCase):
         o0 = k + w_k
         o0.backward()
         return
+
+    def test_to_sparse(self):
+        for sample in _generate_sample_data():
+            data = sample.input
+            mask = sample.kwargs["mask"]
+            mt = masked_tensor(data, mask)
+            mt_sparse = mt.clone().detach().to_sparse_coo()
+            mt_dense = mt_sparse.clone().detach().to_dense()
+
+            _compare_mts(mt, mt_dense)
 
 
 if __name__ == "__main__":
