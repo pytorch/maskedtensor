@@ -136,7 +136,7 @@ class MaskedTensor(torch.Tensor):
         elif data.layout == torch.sparse_coo:
             if data._nnz() != mask._nnz():
                 mask = mask.coalesce()
-                data = _sparse_coo_where(mask, data, 0)
+                data = _sparse_coo_where(mask, data, torch.tensor(0))
 
         logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
         logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
