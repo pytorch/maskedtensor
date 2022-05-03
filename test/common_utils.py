@@ -1,6 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
+from torch.testing._internal.common_methods_invocations import SampleInput
+from torch.testing._internal.common_utils import make_tensor
 
 
 def _compare_mt_t(mt_result, t_result):
@@ -47,3 +49,28 @@ def masks_match(a, b):
         mask_b = b.masked_mask
         return tensors_match(mask_a, mask_b)
     return True
+
+
+def _create_random_mask(shape, device):
+    return make_tensor(
+        shape, device=device, dtype=torch.bool, low=0, high=1, requires_grad=False
+    )
+
+
+def _generate_sample_data(
+    device="cpu", dtype=torch.float, requires_grad=True, sparse=False
+):
+    shapes = [
+        [2],
+        [3, 5],
+        [3, 2, 1, 2],
+    ]
+    inputs = []
+    for s in shapes:
+        data = make_tensor(s, device=device, dtype=dtype, requires_grad=requires_grad)
+        mask = _create_random_mask(s, device)
+        if sparse:
+            mask = mask.to_sparse_coo().coalesce()
+            data = data.sparse_mask(mask).requires_grad_(requires_grad)
+        inputs.append(SampleInput(data, kwargs={"mask": mask}))
+    return inputs
