@@ -5,6 +5,7 @@ from functools import partial
 import numpy as np
 import scipy
 import torch
+from common_utils import _create_random_mask
 from torch.testing import (
     all_types,
     all_types_and,
@@ -49,12 +50,6 @@ M = 10
 S = 5
 
 
-def create_mask(shape, device):
-    return make_tensor(
-        shape, device=device, dtype=torch.bool, low=0, high=1, requires_grad=False
-    )
-
-
 def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
     shapes = [(2, 3, 2), (2, 0, 3)]
 
@@ -74,7 +69,7 @@ def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
             requires_grad=requires_grad,
         )
         min_val, max_val = vals
-        mask = create_mask(shape, device)
+        mask = _create_random_mask(shape, device)
         output.append(
             SampleInput(
                 tensor.clone().requires_grad_(requires_grad),
