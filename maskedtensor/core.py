@@ -136,8 +136,9 @@ class MaskedTensor(torch.Tensor):
             data = data.contiguous()
             mask = mask.contiguous()
         elif data.layout == torch.sparse_coo:
+            data = data.coalesce()
+            mask = mask.coalesce()
             if data._nnz() != mask._nnz():
-                mask = mask.coalesce()
                 data = _sparse_coo_where(mask, data, torch.tensor(0))
 
         logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")

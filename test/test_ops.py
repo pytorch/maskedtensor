@@ -35,7 +35,6 @@ mt_binary_ufuncs = [op for op in binary_ufuncs if is_binary(op)]
 mt_reduction_ufuncs = [op for op in reduction_ops if is_reduction(op)]
 
 MASKEDTENSOR_FLOAT_TYPES = {
-    torch.float16,
     torch.float32,
     torch.float64,
 }
@@ -54,8 +53,8 @@ def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
         )
 
         if is_sparse:
-            input = input.to_sparse_coo()
-            mask = mask.to_sparse_coo()
+            mask = mask.to_sparse_coo().coalesce()
+            input = input.sparse_mask(mask)
 
         # Binary operations currently only support same size masks
         if is_binary(op):
@@ -67,7 +66,7 @@ def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(arg.to_sparse_coo() if is_sparse else arg, mask)
+            masked_tensor(arg.sparse_mask(mask) if is_sparse else arg, mask)
             if torch.is_tensor(arg)
             else arg
             for arg in sample_args
@@ -110,12 +109,12 @@ def _test_reduction_equality(device, dtype, op, is_sparse=False):
 
         tensor_input = _combine_input_and_mask(op.op, input, mask)
         if is_sparse:
-            input = input.to_sparse_coo().coalesce()
             mask = mask.to_sparse_coo().coalesce()
+            input = input.sparse_mask(mask)
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(arg.to_sparse_coo() if is_sparse else arg, mask)
+            masked_tensor(arg.sparse_mask(mask) if is_sparse else arg, mask)
             if torch.is_tensor(arg)
             else arg
             for arg in sample_args
