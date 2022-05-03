@@ -14,14 +14,16 @@ def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
 
 
-def _tensors_match(a, b):
+def _tensors_match(a, b, exact=True):
     assert a.layout == b.layout
     if a.dtype != b.dtype:
         b = b.type(a.dtype)
     if a.layout == b.layout == torch.sparse_coo:
-        return _tensors_match(a.values(), b.values()) and _tensors_match(
-            a.indices(), b.indices()
+        return _tensors_match(a.values(), b.values(), exact) and _tensors_match(
+            a.indices(), b.indices(), exact
         )
+    if exact:
+        return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
     return (a.dim() == b.dim()) and torch.allclose(a, b)
 
 
@@ -29,7 +31,7 @@ def _masks_match(a, b):
     if is_masked_tensor(a) and is_masked_tensor(b):
         mask_a = a.masked_mask
         mask_b = b.masked_mask
-        return _tensors_match(mask_a, mask_b)
+        return _tensors_match(mask_a, mask_b, exact=True)
     return True
 
 
@@ -153,7 +155,7 @@ class MaskedTensor(torch.Tensor):
         assert data.layout == mask.layout
         assert data.layout in [torch.strided, torch.sparse_coo]
         if data.layout == torch.sparse_coo:
-            assert _tensors_match(data.indices(), mask.indices())
+            assert _tensors_match(data.indices(), mask.indices(), exact=True)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
         assert (
@@ -288,7 +290,7 @@ class MaskedTensor(torch.Tensor):
             assert mask
             return func(data)
         if func is torch.ops.aten._to_copy:
-            return MaskedTensor(func(data, *args[1:]), mask)
+            return MaskedTensor(func(data, *args[1:], **kwargs), mask)
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
@@ -375,21 +377,3 @@ class MaskedTensor(torch.Tensor):
     # Update later to support more sparse layouts
     def is_sparse(self):
         return self.is_sparse_coo()
-
-    def to_sparse_coo(self):
-        if self.layout == torch.sparse_coo:
-            return self
-
-        sparse_mask = self.masked_mask.to_sparse_coo().coalesce()
-        sparse_data = self.masked_data.sparse_mask(sparse_mask)
-        self._set_data_mask(sparse_data, sparse_mask)
-
-        return self
-
-    def to_dense(self):
-        if self.layout == torch.strided:
-            return self
-
-        self._set_data_mask(self.masked_data.to_dense(), self.masked_mask.to_dense())
-
-        return self

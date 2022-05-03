@@ -15,7 +15,7 @@ def _compare_mt_t(mt_result, t_result):
         mt_result_data = mt_result_data.to_dense()
     a = mt_result_data.detach().masked_fill_(~mask, 0)
     b = t_result.detach().masked_fill_(~mask, 0)
-    assert _tensors_match(a, b)
+    assert _tensors_match(a, b, exact=False)
 
 
 def _compare_mts(mt1, mt2):
@@ -32,7 +32,7 @@ def _compare_mts(mt1, mt2):
         mt_data2 = mt_data2.to_dense()
     a = mt_data1.detach().masked_fill_(~mask, 0)
     b = mt_data2.detach().masked_fill_(~mask, 0)
-    assert _tensors_match(a, b)
+    assert _tensors_match(a, b, exact=False)
 
 
 def _create_random_mask(shape, device):
