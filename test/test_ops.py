@@ -3,7 +3,7 @@ from common_utils import _compare_mt_t, _create_random_mask
 from maskedtensor import masked_tensor
 from maskedtensor.binary import BINARY_NAMES
 from maskedtensor.unary import UNARY_NAMES
-from maskedtensor_additional_op_db import additional_op_db, create_mask
+from maskedtensor_additional_op_db import additional_op_db
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     ops,
