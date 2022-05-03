@@ -7,8 +7,8 @@
   <title>Overview of MaskedTensors &mdash; MaskedTensor main documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
       <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git26e7fb4) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git472cefa) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -103,7 +103,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="overview-of-maskedtensors">
+  <section id="overview-of-maskedtensors">
 <h1>Overview of MaskedTensors<a class="headerlink" href="#overview-of-maskedtensors" title="Permalink to this headline"></a></h1>
 <p><a class="reference external" href="https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/overview.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <div class="cell docutils container">
@@ -219,32 +219,32 @@ masked_tensor(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[-14.,   9.,   9.],
-        [ -4.,  -1., -15.],
-        [ -2.,   9.,  -9.],
-        [ -2., -12.,   3.],
-        [  5.,   0.,  -3.],
-        [  7.,  14.,   0.],
-        [ 15.,   0.,  -5.],
-        [-15.,  -1.,  -4.]])
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[  3.,  29.,   4.],
+        [-10.,   9.,   8.],
+        [ -3.,  -9.,   2.],
+        [ -3.,  19.,  -9.],
+        [  1.,  21.,   8.],
+        [-11.,  12.,  -4.],
+        [ -3.,  -5.,  -8.],
+        [-17.,  -6.,  -3.]])
 tensor([[False, False,  True],
-        [False, False, False],
-        [ True, False,  True],
-        [ True, False, False],
-        [ True,  True, False],
-        [False,  True, False],
         [ True,  True,  True],
-        [False, False, False]])
+        [ True,  True,  True],
+        [False, False,  True],
+        [False,  True,  True],
+        [False,  True, False],
+        [ True,  True, False],
+        [ True, False,  True]])
 masked_tensor(
   [
-    [      --,       --,   9.0000],
-    [      --,       --,       --],
-    [ -2.0000,       --,  -9.0000],
-    [ -2.0000,       --,       --],
-    [  5.0000,   0.0000,       --],
-    [      --,  14.0000,       --],
-    [ 15.0000,   0.0000,  -5.0000],
-    [      --,       --,       --]
+    [      --,       --,   4.0000],
+    [-10.0000,   9.0000,   8.0000],
+    [ -3.0000,  -9.0000,   2.0000],
+    [      --,       --,  -9.0000],
+    [      --,  21.0000,   8.0000],
+    [      --,  12.0000,       --],
+    [ -3.0000,  -5.0000,       --],
+    [-17.0000,       --,  -3.0000]
   ]
 )
 </pre></div>
@@ -264,19 +264,19 @@ masked_tensor(
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>sum: masked_tensor(
-  [  9.0000,       --, -11.0000,  -2.0000,   5.0000,  14.0000,  10.0000,       --]
+  [  4.0000,   7.0000, -10.0000,  -9.0000,  29.0000,  12.0000,  -8.0000, -20.0000]
 )
 mean: masked_tensor(
-  [  9.0000,       --,  -5.5000,  -2.0000,   2.5000,  14.0000,   3.3333,       --]
+  [  4.0000,   2.3333,  -3.3333,  -9.0000,  14.5000,  12.0000,  -4.0000, -10.0000]
 )
 prod: masked_tensor(
-  [  9.0000,       --,  18.0000,  -2.0000,   0.0000,  14.0000,  -0.0000,       --]
+  [  4.0000, -720.0000,  54.0000,  -9.0000, 168.0000,  12.0000,  15.0000,  51.0000]
 )
 min: masked_tensor(
-  [  9.0000,       --,  -9.0000,  -2.0000,   0.0000,  14.0000,  -5.0000,       --]
+  [  4.0000, -10.0000,  -9.0000,  -9.0000,   8.0000,  12.0000,  -5.0000, -17.0000]
 )
 max: masked_tensor(
-  [  9.0000,       --,  -2.0000,  -2.0000,   5.0000,  14.0000,  15.0000,       --]
+  [  4.0000,   9.0000,   2.0000,  -9.0000,  21.0000,  12.0000,  -3.0000,  -3.0000]
 )
 </pre></div>
 </div>
@@ -343,32 +343,32 @@ npm0.sum(0) + npm1.sum(0):
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [ 11.4249,       --,       --],
-      [ -0.3713,  -0.9060,   7.6909],
-      [  1.0519,  -7.1386,       --],
-      [  6.3789,       --,  -1.0420],
-      [ -0.4324,   2.1459,       --]
+      [  0.7557,       --,       --],
+      [  4.6327,   2.7871,       --],
+      [      --,       --,  -5.4935],
+      [      --,  -5.7444,       --],
+      [  2.1267,       --,       --]
     ],
     [
-      [  3.5503,       --,  -1.4997],
-      [      --,   4.0210,       --],
-      [      --,  -6.2237,  -2.6037],
-      [ -1.4205,       --,       --],
-      [ -8.8081,   5.5687,  -3.4456]
-    ],
-    [
-      [  4.8474,       --,  -1.4872],
-      [      --,  -4.1261,  -5.3658],
-      [      --,  -5.9253,       --],
-      [ -4.7275,       --,  -2.0819],
-      [  7.0783,  -0.3388,  -3.0092]
-    ],
-    [
-      [ -3.5646,       --,   9.8121],
-      [      --,  -1.1839,       --],
-      [ -0.6707,       --, -11.9925],
+      [      --,       --,  -2.7985],
+      [      --,  -6.2822,   9.4920],
+      [      --,       --,   5.7684],
       [      --,       --,       --],
-      [ -2.8605,       --,       --]
+      [  4.2920,       --,       --]
+    ],
+    [
+      [ -1.2966,       --,       --],
+      [      --,   7.4544,       --],
+      [      --,       --,       --],
+      [ -0.8943,       --,       --],
+      [      --,   0.5712,       --]
+    ],
+    [
+      [ -0.1445,       --,       --],
+      [      --,  12.2619,       --],
+      [  7.9330,       --,  -1.9502],
+      [      --,       --,       --],
+      [      --,   8.0581,  -2.9554]
     ]
   ]
 )
@@ -388,33 +388,33 @@ npm0.sum(0) + npm1.sum(0):
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [ 11.4249,       --,       --],
-    [ -0.3713,  -0.9060,   7.6909],
-    [  1.0519,  -7.1386,       --],
-    [  6.3789,       --,  -1.0420],
-    [ -0.4324,   2.1459,       --]
+    [  0.7557,       --,       --],
+    [  4.6327,   2.7871,       --],
+    [      --,       --,  -5.4935],
+    [      --,  -5.7444,       --],
+    [  2.1267,       --,       --]
   ]
 )
 masked_tensor(
   [
     [
-      [ 11.4249,       --,       --],
-      [ -0.3713,  -0.9060,   7.6909],
-      [  1.0519,  -7.1386,       --],
-      [  6.3789,       --,  -1.0420],
-      [ -0.4324,   2.1459,       --]
+      [  0.7557,       --,       --],
+      [  4.6327,   2.7871,       --],
+      [      --,       --,  -5.4935],
+      [      --,  -5.7444,       --],
+      [  2.1267,       --,       --]
     ],
     [
-      [  4.8474,       --,  -1.4872],
-      [      --,  -4.1261,  -5.3658],
-      [      --,  -5.9253,       --],
-      [ -4.7275,       --,  -2.0819],
-      [  7.0783,  -0.3388,  -3.0092]
+      [ -1.2966,       --,       --],
+      [      --,   7.4544,       --],
+      [      --,       --,       --],
+      [ -0.8943,       --,       --],
+      [      --,   0.5712,       --]
     ]
   ]
 )
 masked_tensor(
-  [ 11.4249,  -0.3713,  -0.9060,   7.6909,   1.0519,  -7.1386,   6.3789,  -1.0420,  -0.4324,   2.1459,   3.5503,  -1.4997,   4.0210,  -6.2237,  -2.6037,  -1.4205,  -8.8081,   5.5687,  -3.4456,   4.8474,  -1.4872,  -4.1261,  -5.3658,  -5.9253,  -4.7275,  -2.0819,   7.0783,  -0.3388,  -3.0092,  -3.5646,   9.8121,  -1.1839,  -0.6707, -11.9925,  -2.8605]
+  [  0.7557,   4.6327,   2.7871,  -5.4935,  -5.7444,   2.1267,  -2.7985,  -6.2822,   9.4920,   5.7684,   4.2920,  -1.2966,   7.4544,  -0.8943,   0.5712,  -0.1445,  12.2619,   7.9330,  -1.9502,   8.0581,  -2.9554]
 )
 </pre></div>
 </div>
