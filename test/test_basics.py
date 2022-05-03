@@ -126,5 +126,25 @@ class TestMaskedTensor(TestCase):
             _compare_mt_t(mt.grad.to_dense(), dense_data.grad)
         
 
+    def test_to_dense_and_sparse(self):
+        for sample in _generate_sample_data():
+            data = sample.input
+            mask = sample.kwargs["mask"]
+            ms = mask.to_sparse_coo()
+
+            t1 = data.clone().detach().requires_grad_(True)
+            t1s = data.sparse_mask(ms).clone().detach().requires_grad_(True)
+            mt = masked_tensor(t1, mask, requires_grad=True)
+            mts = masked_tensor(t1s, ms, requires_grad=True)
+
+            converted = mt.to_sparse().to_dense()
+            converted.sum().backward()
+
+            converted2 = mts.to_dense()
+            converted2.sum().backward()
+
+            _compare_mts(mt.grad, mts.grad.to_dense())
+
+
 if __name__ == "__main__":
     unittest.main()

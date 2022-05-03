@@ -113,7 +113,6 @@ class MaskedToDense(torch.autograd.Function):
 class MaskedToSparse(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
-        print ("in to_sparse forward")
         ctx.save_for_backward(input)
         assert is_masked_tensor(input)
         if input.layout == torch.sparse_coo:
