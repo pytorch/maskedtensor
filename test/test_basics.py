@@ -2,8 +2,9 @@
 
 import unittest
 
-from common_utils import _compare_mt_t, _compare_mts, _generate_sample_data
 import torch
+
+from common_utils import _compare_mt_t, _compare_mts, _generate_sample_data
 from maskedtensor import masked_tensor
 from torch.testing._internal.common_utils import TestCase
 
@@ -110,7 +111,6 @@ class TestMaskedTensor(TestCase):
             _compare_mt_t(sparse_mt, data)
             _compare_mt_t(mt.grad, data.grad)
 
-            
     def test_to_dense(self):
         for sample in _generate_sample_data(sparse=True):
             data = sample.input
@@ -124,7 +124,6 @@ class TestMaskedTensor(TestCase):
 
             _compare_mt_t(dense_mt, dense_data)
             _compare_mt_t(mt.grad.to_dense(), dense_data.grad)
-        
 
     def test_to_dense_and_sparse(self):
         for sample in _generate_sample_data():

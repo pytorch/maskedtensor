@@ -74,7 +74,7 @@ def get_mask(a):
     return None
 
 
-class MaskedContigous(torch.autograd.Function):
+class MaskedContiguous(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         assert is_masked_tensor(input)
@@ -87,10 +87,21 @@ class MaskedContigous(torch.autograd.Function):
         return grad_output
 
 
+LAYOUT_TO_INT = {
+    torch.strided: 1,
+    torch.sparse_coo: 2,
+}
+
+INT_TO_LAYOUT = {v: k for k, v in LAYOUT_TO_INT.items()}
+
+
 class MaskedToDense(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
-        ctx.save_for_backward(input)
+        assert (
+            input.layout in LAYOUT_TO_INT
+        ), f"to_dense: Unsupported input layout: {input.layout}"
+        ctx.save_for_backward(torch.tensor(LAYOUT_TO_INT[input.layout]))
         assert is_masked_tensor(input)
         if input.layout == torch.strided:
             return input
@@ -102,18 +113,18 @@ class MaskedToDense(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        (input,) = ctx.saved_tensors
-        if input.layout == torch.sparse_coo:
+        (layout_tensor,) = ctx.saved_tensors
+        layout = INT_TO_LAYOUT[layout_tensor.item()]
+        if layout == torch.sparse_coo:
             return grad_output.to_sparse()
-        elif input.layout == torch.strided:
+        elif layout == torch.strided:
             return grad_output.to_dense()
-        raise ValueError("to_dense: Unsupported input layout: ", input.layout)
+        raise ValueError("to_dense: Unsupported input layout: ", layout)
 
 
 class MaskedToSparse(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
-        ctx.save_for_backward(input)
         assert is_masked_tensor(input)
         if input.layout == torch.sparse_coo:
             return input
@@ -260,7 +271,7 @@ class MaskedTensor(torch.Tensor):
             assert len(kwargs) == 0
             return MaskedWhere.apply(*args)
         if func is torch.Tensor.contiguous:
-            return MaskedContigous.apply(args[0])
+            return MaskedContiguous.apply(args[0])
         if func is torch.Tensor.to_dense:
             return MaskedToDense.apply(args[0])
         if func is torch.Tensor.to_sparse:
@@ -425,7 +436,6 @@ class MaskedTensor(torch.Tensor):
             return MaskedTensor(data, torch.ones_like(data).bool())
         if func is torch.ops.aten._sparse_coo_tensor_with_dims_and_tensors:
             new_args = list(args)
-            v = args[-1]
             if is_masked_tensor(args[-1]):
                 new_args[-1] = args[-1].masked_data
             if is_masked_tensor(args[-2]):
