@@ -54,7 +54,9 @@ def create_mask(shape, device):
     )
 
 
-def sample_inputs_unary(op_info, device, dtype, requires_grad, op_kwargs=None, **kwargs):
+def sample_inputs_unary(
+    op_info, device, dtype, requires_grad, op_kwargs=None, **kwargs
+):
     if not op_kwargs:
         op_kwargs = {}
 
@@ -64,15 +66,31 @@ def sample_inputs_unary(op_info, device, dtype, requires_grad, op_kwargs=None, *
 
     if op_info.supports_sparse_csr:
         # Tensors with dim=2 for sparse CSR testing
-        yield SampleInput(make_tensor((L, L), device=device, dtype=dtype,
-                                      low=low, high=high,
-                                      requires_grad=requires_grad), kwargs=op_kwargs)
+        yield SampleInput(
+            make_tensor(
+                (L, L),
+                device=device,
+                dtype=dtype,
+                low=low,
+                high=high,
+                requires_grad=requires_grad,
+            ),
+            kwargs=op_kwargs,
+        )
     else:
         # Creates a 1D, empty, and scalar tensor
         for shape in ((L,), (1, 0, 3), ()):
-            yield SampleInput(make_tensor(shape, device=device, dtype=dtype,
-                                          low=low, high=high,
-                                          requires_grad=requires_grad), kwargs=op_kwargs)
+            yield SampleInput(
+                make_tensor(
+                    shape,
+                    device=device,
+                    dtype=dtype,
+                    low=low,
+                    high=high,
+                    requires_grad=requires_grad,
+                ),
+                kwargs=op_kwargs,
+            )
 
 
 def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
