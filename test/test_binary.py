@@ -21,6 +21,9 @@ def _get_test_data(fn_name):
     if fn_name in ["bitwise_and", "bitwise_or", "bitwise_xor"]:
         data0 = data0.mul(128).to(torch.int8)
         data1 = data1.mul(128).to(torch.int8)
+    if fn_name in ["bitwise_left_shift", "bitwise_right_shift"]:
+        data0 = data0.to(torch.int64)
+        data1 = data1.to(torch.int64)
     return data0, data1, mask
 
 
