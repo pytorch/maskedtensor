@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gitc1519a9) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gite4bd62c) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -149,13 +149,35 @@
 masked_tensor(
   [      --,       --,   2.0000,       --,   4.0000]
 )
-masked_tensor(
-  [  1.0000,   0.5403,       --,  -0.9900,       --]
-)
-masked_tensor(
-  [  0.0000,   2.0000,       --,   6.0000,       --]
-)
-Input masks must match. If you need support for this, please open an issue on Github.
+</pre></div>
+</div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="nn">Input In [2],</span> in <span class="ni">&lt;cell line: 9&gt;</span><span class="nt">()</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="nb">print</span><span class="p">(</span><span class="n">m0</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span> <span class="nb">print</span><span class="p">(</span><span class="n">m1</span><span class="p">)</span>
+<span class="ne">----&gt; </span><span class="mi">9</span> <span class="nb">print</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">m0</span><span class="p">))</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="nb">print</span><span class="p">(</span><span class="n">m0</span> <span class="o">+</span> <span class="n">m0</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="k">try</span><span class="p">:</span>
+<span class="g g-Whitespace">     </span><span class="mi">13</span>   <span class="c1"># For now the masks must match. We treat them like shapes.</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span>   <span class="c1"># We can relax this later on, but should have a good reason for it.</span>
+<span class="g g-Whitespace">     </span><span class="mi">15</span>   <span class="c1"># We&#39;ll revisit this once we have reductions.</span>
+
+<span class="nn">File ~/.local/lib/python3.8/site-packages/maskedtensor/core.py:224,</span> in <span class="ni">MaskedTensor.__torch_function__</span><span class="nt">(cls, func, types, args, kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">222</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;tf redispatching to td&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">223</span> <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">_C</span><span class="o">.</span><span class="n">DisableTorchFunction</span><span class="p">():</span>
+<span class="ne">--&gt; </span><span class="mi">224</span>     <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">225</span>     <span class="k">if</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">get_default_nowrap_functions</span><span class="p">():</span>
+<span class="g g-Whitespace">    </span><span class="mi">226</span>         <span class="k">return</span> <span class="n">ret</span>
+
+<span class="nn">File ~/.local/lib/python3.8/site-packages/maskedtensor/core.py:236,</span> in <span class="ni">MaskedTensor.__torch_dispatch__</span><span class="nt">(cls, func, types, args, kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">234</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">    </span><span class="mi">235</span> <span class="k">def</span> <span class="nf">__torch_dispatch__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">236</span>     <span class="n">func</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">overloadpacket</span>
+<span class="g g-Whitespace">    </span><span class="mi">238</span>     <span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">apply_reduction</span><span class="p">,</span> <span class="n">is_reduction</span>
+<span class="g g-Whitespace">    </span><span class="mi">240</span>     <span class="k">if</span> <span class="n">is_reduction</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+<span class="ne">AttributeError</span>: &#39;builtin_function_or_method&#39; object has no attribute &#39;overloadpacket&#39;
 </pre></div>
 </div>
 </div>
@@ -219,32 +241,32 @@ masked_tensor(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[  3.,  -2., -25.],
-        [ 30.,  -2.,   0.],
-        [  3.,   3.,   1.],
-        [  4., -20.,  -9.],
-        [ -8.,   5., -11.],
-        [ -2.,   0.,  -4.],
-        [ -2.,   1., -15.],
-        [  0.,   3.,  -7.]])
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[  5.,   0.,  -2.],
+        [-15.,   7.,   5.],
+        [  0.,  22., -33.],
+        [ -5.,   6.,   0.],
+        [ -4.,  -4.,  -1.],
+        [-13.,   4.,  -1.],
+        [ -9.,   0.,  -3.],
+        [  9., -13.,  -5.]])
 tensor([[False,  True, False],
-        [False, False, False],
-        [False,  True, False],
-        [ True, False,  True],
-        [ True, False,  True],
         [False, False,  True],
+        [ True,  True,  True],
+        [False, False, False],
+        [False, False, False],
+        [ True, False, False],
         [ True,  True, False],
-        [ True,  True,  True]])
+        [False,  True, False]])
 masked_tensor(
   [
-    [      --,  -2.0000,       --],
+    [      --,   0.0000,       --],
+    [      --,       --,   5.0000],
+    [  0.0000,  22.0000, -33.0000],
     [      --,       --,       --],
-    [      --,   3.0000,       --],
-    [  4.0000,       --,  -9.0000],
-    [ -8.0000,       --, -11.0000],
-    [      --,       --,  -4.0000],
-    [ -2.0000,   1.0000,       --],
-    [  0.0000,   3.0000,  -7.0000]
+    [      --,       --,       --],
+    [-13.0000,       --,       --],
+    [ -9.0000,   0.0000,       --],
+    [      --, -13.0000,       --]
   ]
 )
 </pre></div>
@@ -264,19 +286,19 @@ masked_tensor(
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>sum: masked_tensor(
-  [ -2.0000,       --,   3.0000,  -5.0000, -19.0000,  -4.0000,  -1.0000,  -4.0000]
+  [  0.0000,   5.0000, -11.0000,       --,       --, -13.0000,  -9.0000, -13.0000]
 )
 mean: masked_tensor(
-  [ -2.0000,       --,   3.0000,  -2.5000,  -9.5000,  -4.0000,  -0.5000,  -1.3333]
+  [  0.0000,   5.0000,  -3.6667,       --,       --, -13.0000,  -4.5000, -13.0000]
 )
 prod: masked_tensor(
-  [ -2.0000,       --,   3.0000, -36.0000,  88.0000,  -4.0000,  -2.0000,  -0.0000]
+  [  0.0000,   5.0000,  -0.0000,       --,       --, -13.0000,  -0.0000, -13.0000]
 )
 min: masked_tensor(
-  [ -2.0000,       --,   3.0000,  -9.0000, -11.0000,  -4.0000,  -2.0000,  -7.0000]
+  [  0.0000,   5.0000, -33.0000,       --,       --, -13.0000,  -9.0000, -13.0000]
 )
 max: masked_tensor(
-  [ -2.0000,       --,   3.0000,   4.0000,  -8.0000,  -4.0000,   1.0000,   3.0000]
+  [  0.0000,   5.0000,  22.0000,       --,       --, -13.0000,   0.0000, -13.0000]
 )
 </pre></div>
 </div>
@@ -343,32 +365,32 @@ npm0.sum(0) + npm1.sum(0):
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [-10.0216,       --,       --],
-      [      --,  11.1989,       --],
-      [ -1.7530,  -2.0252,       --],
-      [  1.1185,   1.8846,   6.4419],
-      [-13.9258,       --,       --]
-    ],
-    [
-      [      --,  -8.2299,   3.6439],
-      [      --,  -0.9437,       --],
-      [ -0.5740,  -3.6695,  -4.4444],
-      [      --,   9.1151,  -7.3066],
-      [ -6.7685,   4.5815,       --]
-    ],
-    [
-      [ -1.7413,       --,       --],
-      [  6.4232,  -7.0912,       --],
-      [      --,   0.7055,  -2.6079],
-      [      --,   2.9192,  10.5245],
-      [  5.0719,  -5.6002,  -8.7906]
-    ],
-    [
-      [ 10.5310,       --,  -5.4532],
-      [      --,       --,   6.0678],
-      [      --,       --,  -3.5939],
+      [ -7.9742,       --,       --],
+      [ -4.4461,       --,  -4.2783],
       [      --,       --,       --],
-      [      --,   0.4189,       --]
+      [      --,   4.3313,  -4.1045],
+      [  2.2480,   0.0212,       --]
+    ],
+    [
+      [ 10.0361,       --,       --],
+      [      --,       --,       --],
+      [      --,       --,  -3.1340],
+      [  8.4769,       --,  -4.5447],
+      [ -3.1678,       --,       --]
+    ],
+    [
+      [  2.6252,       --,       --],
+      [  1.4931,       --,       --],
+      [  2.2236,  -8.5375,  -5.7018],
+      [ -0.5694,  -1.0786,   6.1231],
+      [  5.5496,       --,       --]
+    ],
+    [
+      [ -0.6714,   6.0766,   5.8140],
+      [      --,  -1.2277,       --],
+      [      --,  -0.8328,       --],
+      [ -0.6480,       --,       --],
+      [ -1.0956,  -4.6425,  -3.6873]
     ]
   ]
 )
@@ -388,33 +410,33 @@ npm0.sum(0) + npm1.sum(0):
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [-10.0216,       --,       --],
-    [      --,  11.1989,       --],
-    [ -1.7530,  -2.0252,       --],
-    [  1.1185,   1.8846,   6.4419],
-    [-13.9258,       --,       --]
+    [ -7.9742,       --,       --],
+    [ -4.4461,       --,  -4.2783],
+    [      --,       --,       --],
+    [      --,   4.3313,  -4.1045],
+    [  2.2480,   0.0212,       --]
   ]
 )
 masked_tensor(
   [
     [
-      [-10.0216,       --,       --],
-      [      --,  11.1989,       --],
-      [ -1.7530,  -2.0252,       --],
-      [  1.1185,   1.8846,   6.4419],
-      [-13.9258,       --,       --]
+      [ -7.9742,       --,       --],
+      [ -4.4461,       --,  -4.2783],
+      [      --,       --,       --],
+      [      --,   4.3313,  -4.1045],
+      [  2.2480,   0.0212,       --]
     ],
     [
-      [ -1.7413,       --,       --],
-      [  6.4232,  -7.0912,       --],
-      [      --,   0.7055,  -2.6079],
-      [      --,   2.9192,  10.5245],
-      [  5.0719,  -5.6002,  -8.7906]
+      [  2.6252,       --,       --],
+      [  1.4931,       --,       --],
+      [  2.2236,  -8.5375,  -5.7018],
+      [ -0.5694,  -1.0786,   6.1231],
+      [  5.5496,       --,       --]
     ]
   ]
 )
 masked_tensor(
-  [-10.0216,  11.1989,  -1.7530,  -2.0252,   1.1185,   1.8846,   6.4419, -13.9258,  -8.2299,   3.6439,  -0.9437,  -0.5740,  -3.6695,  -4.4444,   9.1151,  -7.3066,  -6.7685,   4.5815,  -1.7413,   6.4232,  -7.0912,   0.7055,  -2.6079,   2.9192,  10.5245,   5.0719,  -5.6002,  -8.7906,  10.5310,  -5.4532,   6.0678,  -3.5939,   0.4189]
+  [ -7.9742,  -4.4461,  -4.2783,   4.3313,  -4.1045,   2.2480,   0.0212,  10.0361,  -3.1340,   8.4769,  -4.5447,  -3.1678,   2.6252,   1.4931,   2.2236,  -8.5375,  -5.7018,  -0.5694,  -1.0786,   6.1231,   5.5496,  -0.6714,   6.0766,   5.8140,  -1.2277,  -0.8328,  -0.6480,  -1.0956,  -4.6425,  -3.6873]
 )
 </pre></div>
 </div>

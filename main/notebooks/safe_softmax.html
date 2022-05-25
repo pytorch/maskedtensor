@@ -37,7 +37,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gitc1519a9) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gite4bd62c) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -134,8 +134,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[0.6121,    nan, 0.0000],
-        [0.3879,    nan, 1.0000],
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[0.4882,    nan, 0.0000],
+        [0.5118,    nan, 1.0000],
         [0.0000,    nan, 0.0000]])
 </pre></div>
 </div>
@@ -149,13 +149,26 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
-  [
-    [  0.6121,       --,       --],
-    [  0.3879,       --,   1.0000],
-    [      --,       --,       --]
-  ]
-)
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="nn">Input In [4],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">m</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="nn">File ~/.local/lib/python3.8/site-packages/maskedtensor/core.py:224,</span> in <span class="ni">MaskedTensor.__torch_function__</span><span class="nt">(cls, func, types, args, kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">222</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;tf redispatching to td&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">223</span> <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">_C</span><span class="o">.</span><span class="n">DisableTorchFunction</span><span class="p">():</span>
+<span class="ne">--&gt; </span><span class="mi">224</span>     <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">225</span>     <span class="k">if</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">get_default_nowrap_functions</span><span class="p">():</span>
+<span class="g g-Whitespace">    </span><span class="mi">226</span>         <span class="k">return</span> <span class="n">ret</span>
+
+<span class="nn">File ~/.local/lib/python3.8/site-packages/maskedtensor/core.py:236,</span> in <span class="ni">MaskedTensor.__torch_dispatch__</span><span class="nt">(cls, func, types, args, kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">234</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">    </span><span class="mi">235</span> <span class="k">def</span> <span class="nf">__torch_dispatch__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">236</span>     <span class="n">func</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">overloadpacket</span>
+<span class="g g-Whitespace">    </span><span class="mi">238</span>     <span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">apply_reduction</span><span class="p">,</span> <span class="n">is_reduction</span>
+<span class="g g-Whitespace">    </span><span class="mi">240</span>     <span class="k">if</span> <span class="n">is_reduction</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+<span class="ne">AttributeError</span>: &#39;builtin_function_or_method&#39; object has no attribute &#39;overloadpacket&#39;
 </pre></div>
 </div>
 </div>
