@@ -1,4 +1,5 @@
 import itertools
+import operator
 import unittest
 from functools import partial
 
@@ -890,18 +891,32 @@ additional_op_db.extend(
             op=torch.bitwise_left_shift,
             dtypes=integral_types(),
             dtypesIfCUDA=integral_types(),
+            operator_variant=operator.lshift,
+            inplace_operator_variant=operator.ilshift,
             supports_autograd=False,
             supports_one_python_scalar=True,
-            rhs_make_tensor_kwargs={"low": 0},
+            rhs_make_tensor_kwargs=dict(low=0),
+            skips=(
+                DecorateInfo(
+                    unittest.skip("Skipped!"), "TestBinaryUfuncs", "test_type_promotion"
+                ),
+            ),
         ),
         BinaryUfuncInfo(
             "bitwise_right_shift",
             op=torch.bitwise_right_shift,
             dtypes=integral_types(),
             dtypesIfCUDA=integral_types(),
+            operator_variant=operator.rshift,
+            inplace_operator_variant=operator.irshift,
             supports_autograd=False,
             supports_one_python_scalar=True,
-            rhs_make_tensor_kwargs={"low": 0},
+            rhs_make_tensor_kwargs=dict(low=0),
+            skips=(
+                DecorateInfo(
+                    unittest.skip("Skipped!"), "TestBinaryUfuncs", "test_type_promotion"
+                ),
+            ),
         ),
         BinaryUfuncInfo(
             "div",
