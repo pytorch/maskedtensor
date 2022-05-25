@@ -7,12 +7,12 @@ import scipy
 import torch
 from common_utils import _create_random_mask
 from torch.testing import (
-    all_types,
     all_types_and,
     all_types_and_complex_and,
     floating_and_complex_types_and,
     floating_types,
     floating_types_and,
+    integral_types,
     integral_types_and,
 )
 from torch.testing._internal.common_device_type import (
@@ -37,7 +37,6 @@ from torch.testing._internal.common_methods_invocations import (
     sample_inputs_elementwise_binary,
     sample_inputs_i0_i1,
     sample_inputs_logit,
-    sample_inputs_unary,
     SampleInput,
     UnaryUfuncInfo,
 )
@@ -48,6 +47,27 @@ from torch.testing._internal.common_utils import make_tensor, TEST_SCIPY
 L = 20
 M = 10
 S = 5
+
+
+def sample_inputs_unary(op_info, device, dtype, requires_grad, op_kwargs=None, **kwargs):
+    if not op_kwargs:
+        op_kwargs = {}
+
+    low, high = op_info.domain
+    low = low if low is None else low + op_info._domain_eps
+    high = high if high is None else high - op_info._domain_eps
+
+    if op_info.supports_sparse_csr:
+        # Tensors with dim=2 for sparse CSR testing
+        yield SampleInput(make_tensor((L, L), device=device, dtype=dtype,
+                                      low=low, high=high,
+                                      requires_grad=requires_grad), kwargs=op_kwargs)
+    else:
+        # Creates a 1D, empty, and scalar tensor
+        for shape in ((L,), (1, 0, 3), ()):
+            yield SampleInput(make_tensor(shape, device=device, dtype=dtype,
+                                          low=low, high=high,
+                                          requires_grad=requires_grad), kwargs=op_kwargs)
 
 
 def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
@@ -103,7 +123,6 @@ additional_op_db.extend(
             aliases=("arccos",),
             ref=np.arccos,
             domain=(-1, 1),
-            handles_complex_extremals=False,
             dtypes=all_types_and_complex_and(torch.bool, torch.bfloat16),
             dtypesIfCUDA=all_types_and_complex_and(
                 torch.bool, torch.half, torch.bfloat16
@@ -638,7 +657,6 @@ additional_op_db.extend(
             assert_autodiffed=True,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
-            handles_complex_extremals=False,
         ),
         UnaryUfuncInfo(
             "sigmoid",
@@ -698,7 +716,6 @@ additional_op_db.extend(
             sample_inputs_func=sample_inputs_unary,
             assert_autodiffed=True,
             handles_large_floats=False,
-            handles_complex_extremals=False,
             supports_sparse=True,
             supports_sparse_csr=True,
             supports_forward_ad=True,
@@ -722,7 +739,6 @@ additional_op_db.extend(
             ),
             sample_inputs_func=sample_inputs_unary,
             handles_large_floats=False,
-            handles_complex_extremals=False,
             supports_forward_ad=True,
             supports_fwgrad_bwgrad=True,
             decorators=(
@@ -759,7 +775,6 @@ additional_op_db.extend(
             supports_sparse_csr=True,
             supports_fwgrad_bwgrad=True,
             decorators=(precisionOverride({torch.bfloat16: 7e-2}),),
-            handles_complex_extremals=False,
         ),
         UnaryUfuncInfo(
             "square",
@@ -855,7 +870,7 @@ additional_op_db.extend(
         BinaryUfuncInfo(
             "bitwise_left_shift",
             op=torch.bitwise_left_shift,
-            dtypes=all_types(),
+            dtypes=integral_types(),
             dtypesIfCUDA=all_types_and(torch.float16, torch.bfloat16),
             supports_autograd=False,
             supports_one_python_scalar=True,
@@ -864,7 +879,7 @@ additional_op_db.extend(
         BinaryUfuncInfo(
             "bitwise_right_shift",
             op=torch.bitwise_right_shift,
-            dtypes=all_types(),
+            dtypes=integral_types(),
             dtypesIfCUDA=all_types_and(torch.float16, torch.bfloat16),
             supports_autograd=False,
             supports_one_python_scalar=True,
