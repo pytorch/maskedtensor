@@ -1,10 +1,14 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
 import itertools
+import operator
 import unittest
 from functools import partial
 
 import numpy as np
 import scipy
 import torch
+from common_utils import _create_random_mask
 from torch.testing import (
     all_types_and,
     all_types_and_complex_and,
@@ -48,10 +52,43 @@ M = 10
 S = 5
 
 
-def create_mask(shape, device):
-    return make_tensor(
-        shape, device=device, dtype=torch.bool, low=0, high=1, requires_grad=False
-    )
+def sample_inputs_unary(
+    op_info, device, dtype, requires_grad, op_kwargs=None, **kwargs
+):
+    if not op_kwargs:
+        op_kwargs = {}
+
+    low, high = op_info.domain
+    low = low if low is None else low + op_info._domain_eps
+    high = high if high is None else high - op_info._domain_eps
+
+    if op_info.supports_sparse_csr:
+        # Tensors with dim=2 for sparse CSR testing
+        yield SampleInput(
+            make_tensor(
+                (L, L),
+                device=device,
+                dtype=dtype,
+                low=low,
+                high=high,
+                requires_grad=requires_grad,
+            ),
+            kwargs=op_kwargs,
+        )
+    else:
+        # Creates a 1D, empty, and scalar tensor
+        for shape in ((L,), (1, 0, 3), ()):
+            yield SampleInput(
+                make_tensor(
+                    shape,
+                    device=device,
+                    dtype=dtype,
+                    low=low,
+                    high=high,
+                    requires_grad=requires_grad,
+                ),
+                kwargs=op_kwargs,
+            )
 
 
 def sample_inputs_unary(
@@ -112,7 +149,7 @@ def sample_inputs_clamp_scalar(op_info, device, dtype, requires_grad, **kwargs):
             requires_grad=requires_grad,
         )
         min_val, max_val = vals
-        mask = create_mask(shape, device)
+        mask = _create_random_mask(shape, device)
         output.append(
             SampleInput(
                 tensor.clone().requires_grad_(requires_grad),
@@ -894,19 +931,33 @@ additional_op_db.extend(
             "bitwise_left_shift",
             op=torch.bitwise_left_shift,
             dtypes=integral_types(),
-            dtypesIfCUDA=all_types_and(torch.float16, torch.bfloat16),
+            dtypesIfCUDA=integral_types(),
+            operator_variant=operator.lshift,
+            inplace_operator_variant=operator.ilshift,
             supports_autograd=False,
             supports_one_python_scalar=True,
-            rhs_make_tensor_kwargs={"low": 0},
+            rhs_make_tensor_kwargs=dict(low=0),
+            skips=(
+                DecorateInfo(
+                    unittest.skip("Skipped!"), "TestBinaryUfuncs", "test_type_promotion"
+                ),
+            ),
         ),
         BinaryUfuncInfo(
             "bitwise_right_shift",
             op=torch.bitwise_right_shift,
             dtypes=integral_types(),
-            dtypesIfCUDA=all_types_and(torch.float16, torch.bfloat16),
+            dtypesIfCUDA=integral_types(),
+            operator_variant=operator.rshift,
+            inplace_operator_variant=operator.irshift,
             supports_autograd=False,
             supports_one_python_scalar=True,
-            rhs_make_tensor_kwargs={"low": 0},
+            rhs_make_tensor_kwargs=dict(low=0),
+            skips=(
+                DecorateInfo(
+                    unittest.skip("Skipped!"), "TestBinaryUfuncs", "test_type_promotion"
+                ),
+            ),
         ),
         BinaryUfuncInfo(
             "div",

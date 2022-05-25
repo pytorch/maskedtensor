@@ -129,7 +129,7 @@ class TestMaskedTensor(TestCase):
         for sample in _generate_sample_data():
             data = sample.input
             mask = sample.kwargs["mask"]
-            ms = mask.to_sparse_coo()
+            ms = mask.to_sparse_coo().coalesce()
 
             t1 = data.clone().detach().requires_grad_(True)
             t1s = data.sparse_mask(ms).clone().detach().requires_grad_(True)

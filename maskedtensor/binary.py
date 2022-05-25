@@ -118,7 +118,13 @@ def torch_binary(fn_name):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
-        if args[0].layout != args[1].layout:
+        from maskedtensor import is_masked_tensor
+
+        if (
+            is_masked_tensor(args[0])
+            and is_masked_tensor(args[1])
+            and args[0].layout != args[1].layout
+        ):
             raise ValueError(
                 "Inputs should match sparsity/density. If you need support this, please open an issue on Github."
             )
@@ -131,11 +137,13 @@ def torch_binary(fn_name):
                 raise ValueError(
                     "Sparse indices must match. If you need support for this, please open an issue on Github."
                 )
+            assert data_args[0].size() == data_args[1].size()
             i = data_args[0].indices()
+            size = data_args[0].size()
             data_args[0] = data_args[0].values()
             data_args[1] = data_args[1].values()
             v = fn(*data_args)
-            result_data = torch.sparse_coo_tensor(i, v)
+            result_data = torch.sparse_coo_tensor(i, v, size)
         else:
             result_data = fn(*data_args)
             # sparse tensors don't have strides
@@ -169,11 +177,13 @@ def torch_inplace_binary(fn_name):
                 raise ValueError(
                     "Sparse indices must match. If you need support for this, please open an issue on Github."
                 )
+            assert data_args[0].size() == data_args[1].size()
             i = data_args[0].indices()
+            size = data_args[0].size()
             data_args[0] = data_args[0].values()
             data_args[1] = data_args[1].values()
             v = fn(*data_args)
-            result_data = torch.sparse_coo_tensor(i, v)
+            result_data = torch.sparse_coo_tensor(i, v, size)
         else:
             result_data = fn(*data_args)
 
