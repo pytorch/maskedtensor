@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
+from torch.testing._internal.common_utils import make_tensor
 
 
 def _compare_mt_t(mt_result, t_result):
@@ -47,3 +48,9 @@ def masks_match(a, b):
         mask_b = b.masked_mask
         return tensors_match(mask_a, mask_b)
     return True
+
+
+def _create_random_mask(shape, device):
+    return make_tensor(
+        shape, device=device, dtype=torch.bool, low=0, high=1, requires_grad=False
+    )

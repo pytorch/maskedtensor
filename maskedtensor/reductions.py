@@ -1,7 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import torch
-from maskedtensor import MaskedTensor
+
+from .creation import masked_tensor
 
 
 def masked_all_all(data, mask=None):
@@ -42,7 +43,7 @@ def torch_reduce_all(fn):
         data = self.masked_data
         mask = self.masked_mask
         masked_fn = get_masked_fn(fn)
-        return MaskedTensor(masked_fn(data, mask=mask), torch.any(mask))
+        return masked_tensor(masked_fn(data, mask=mask), torch.any(mask))
 
     return reduce_all
 
@@ -59,7 +60,7 @@ def torch_reduce_dim(fn):
             result_data = masked_fn(
                 data, dim=dim, keepdim=keepdim, dtype=dtype, mask=mask
             )
-        return MaskedTensor(result_data, multidim_any(mask, dim, keepdim))
+        return masked_tensor(result_data, multidim_any(mask, dim, keepdim))
 
     return reduce_dim
 
@@ -86,7 +87,7 @@ def torch_grad_reduce_all(fn):
         def backward(ctx, grad_output):
             (mask,) = ctx.saved_tensors
             grad_data = grad_output.masked_data.expand_as(mask)
-            return MaskedTensor(grad_data, mask)
+            return masked_tensor(grad_data, mask)
 
     return MaskedReduceAll.apply
 
@@ -104,7 +105,7 @@ def torch_grad_reduce_dim(fn):
         def backward(ctx, grad_output):
             (mask,) = ctx.saved_tensors
             grad_data = grad_output.masked_data.expand_as(mask)
-            return MaskedTensor(grad_data, mask)
+            return masked_tensor(grad_data, mask)
 
     return MaskedReduceDim.apply
 

@@ -74,7 +74,7 @@ def get_mask(a):
     return None
 
 
-class MaskedContigous(torch.autograd.Function):
+class MaskedContiguous(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         assert is_masked_tensor(input)
@@ -216,7 +216,7 @@ class MaskedTensor(torch.Tensor):
             assert len(kwargs) == 0
             return MaskedWhere.apply(*args)
         if func is torch.Tensor.contiguous:
-            return MaskedContigous.apply(args[0])
+            return MaskedContiguous.apply(args[0])
         if not all(issubclass(cls, t) for t in types):
             return NotImplemented
         logging.debug("tf redispatching to td")
