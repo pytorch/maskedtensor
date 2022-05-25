@@ -4,6 +4,7 @@ import logging
 import os
 
 import torch
+from torch._masked import _sparse_coo_where
 from torch.overrides import get_default_nowrap_functions
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
@@ -13,21 +14,24 @@ def is_masked_tensor(a):
     return isinstance(a, MaskedTensor)
 
 
-def masks_match(a, b):
+def _tensors_match(a, b, exact=True):
+    assert a.layout == b.layout
+    if a.dtype != b.dtype:
+        b = b.type(a.dtype)
+    if a.layout == b.layout == torch.sparse_coo:
+        return _tensors_match(a.values(), b.values(), exact) and _tensors_match(
+            a.indices(), b.indices(), exact
+        )
+    if exact:
+        return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
+    return (a.dim() == b.dim()) and torch.allclose(a, b)
+
+
+def _masks_match(a, b):
     if is_masked_tensor(a) and is_masked_tensor(b):
-        mask_a = get_mask(a)
-        mask_b = get_mask(b)
-        # logger.debug(
-        #         " mask_a.size(): ",
-        #         mask_a.size(),
-        #         " mask_b.size(): ",
-        #         mask_b.size(),
-        #         " mask_a.stride(): ",
-        #         mask_a.stride(),
-        #         " mask_b.stride(): ",
-        #         mask_b.stride(),
-        #     )
-        return (mask_a.dim() == mask_b.dim()) and torch.eq(mask_a, mask_b).all().item()
+        mask_a = a.masked_mask
+        mask_b = b.masked_mask
+        return _tensors_match(mask_a, mask_b, exact=True)
     return True
 
 
@@ -125,12 +129,34 @@ class MaskedTensor(torch.Tensor):
         kwargs["requires_grad"] = requires_grad
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
+    def _preprocess_data(self, data, mask):
+        assert data.layout == mask.layout
+        if data.layout == torch.strided:
+            # .contiguous cannot be overwritten so it's always contiguous
+            data = data.contiguous()
+            mask = mask.contiguous()
+        elif data.layout == torch.sparse_coo:
+            data = data.coalesce()
+            mask = mask.coalesce()
+            if data._nnz() != mask._nnz():
+                data = _sparse_coo_where(mask, data, torch.tensor(0))
+
+        logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
+        logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
+        logging.debug(f"data: {data}")
+        logging.debug(f"mask: {mask}")
+        # Have to pick awkward names to not conflict with existing fields such as data
+        self.masked_data = data
+        self.masked_mask = mask
+
     def _validate_members(self):
         data = self.masked_data
         mask = self.masked_mask
         assert type(data) == type(mask)
         assert data.layout == mask.layout
         assert data.layout in [torch.strided, torch.sparse_coo]
+        if data.layout == torch.sparse_coo:
+            assert _tensors_match(data.indices(), mask.indices(), exact=True)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
         assert (
@@ -149,19 +175,7 @@ class MaskedTensor(torch.Tensor):
 
     def __init__(self, data, mask, requires_grad=False):
         logging.debug(f"----in\ntype(data): {type(data)} type(mask): {type(mask)}")
-        assert data.layout == mask.layout
-        if data.layout == torch.strided:
-            # .contiguous cannot be overwritten so it's always contiguous
-            data = data.contiguous()
-            mask = mask.contiguous()
-
-        logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
-        logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
-        logging.debug(f"data: {data}")
-        logging.debug(f"mask: {mask}")
-        # Have to pick awkward names to not conflict with existing fields such as data
-        self.masked_data = data
-        self.masked_mask = mask
+        self._preprocess_data(data, mask)
         self._validate_members()
 
     def _set_data_mask(self, data, mask):
@@ -283,7 +297,7 @@ class MaskedTensor(torch.Tensor):
             assert tuple(args[1]) == tuple(data.size())
             assert tuple(args[2]) == tuple(data.stride())
             return MaskedTensor(func(data, args[1], args[2], **kwargs), mask)
-        if func in [torch.ops.aten.detach]:
+        if func in [torch.ops.aten.detach, torch.ops.aten.clone]:
             assert len(args) == 1
             assert len(kwargs) == 0
             return MaskedTensor(func(data), mask)
@@ -311,7 +325,7 @@ class MaskedTensor(torch.Tensor):
             dim = args[2]
             input_dtype = args[3]
             if is_masked_tensor(grad) and is_masked_tensor(output):
-                assert masks_match(grad, output)
+                assert _masks_match(grad, output)
                 grad_data = get_data(grad).masked_fill(~get_mask(grad), 1)
                 output_data = get_data(output).masked_fill(~get_mask(output), 0)
                 new_grad_data = torch.ops.aten._softmax_backward_data(
@@ -321,7 +335,7 @@ class MaskedTensor(torch.Tensor):
                 return res
         if func is torch.ops.aten.copy_:
             assert len(args) == 2
-            assert masks_match(get_mask(args[0]), get_mask(args[1]))
+            assert _masks_match(get_mask(args[0]), get_mask(args[1]))
             func(data, get_data(args[1]))
             return args[0]
         if func in [torch.ops.aten.where]:

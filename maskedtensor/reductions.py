@@ -1,8 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
+import logging
+import os
+
 import torch
 
 from .creation import masked_tensor
+
+logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
 
 
 def masked_all_all(data, mask=None):
@@ -40,9 +45,24 @@ def get_masked_fn(fn):
 
 def torch_reduce_all(fn):
     def reduce_all(self):
-        data = self.masked_data
-        mask = self.masked_mask
         masked_fn = get_masked_fn(fn)
+        if self.is_sparse():
+            data = self.masked_data.values()
+            mask = self.masked_mask.values()
+        else:
+            data = self.masked_data
+            mask = self.masked_mask
+        # When reduction is "all", then torch.argmin/torch.argmax needs to return the index of the
+        # element corresponding to the min/max, but this operation isn't supported correctly for sparse layouts.
+        # Therefore, this implementation calculates it using the strides.
+        if fn in {"argmin", "argmax"} and self.is_sparse():
+            sparse_idx = masked_fn(data, mask=mask).to(dtype=torch.int)
+            idx = self.masked_data.indices().unbind(1)[sparse_idx]
+            stride = self.masked_data.size().numel() / torch.tensor(
+                self.masked_data.size()
+            ).cumprod(0)
+            return masked_tensor(torch.sum(idx * stride), torch.any(mask))
+
         return masked_tensor(masked_fn(data, mask=mask), torch.any(mask))
 
     return reduce_all
@@ -51,6 +71,17 @@ def torch_reduce_all(fn):
 # If hope this signature won't change to frequently
 def torch_reduce_dim(fn):
     def reduce_dim(self, dim, keepdim=False, dtype=None):
+        if self.is_sparse():
+            msg = (
+                f"The sparse version of {fn} is not implemented in reductions.\n"
+                "If you would like this operator to be supported, please file an issue for a feature request at "
+                "https://github.com/pytorch/maskedtensor/issues with a minimal reproducible code snippet.\n"
+                "In the case that the semantics for the operator are not trivial, it would be appreciated "
+                "to also include a proposal for the semantics."
+            )
+            logging.info(msg)
+            return NotImplemented
+
         data = self.masked_data
         mask = self.masked_mask
         masked_fn = get_masked_fn(fn)
@@ -125,7 +156,19 @@ def torch_grad_reduce(fn):
     return grad_reduce
 
 
-REDUCE_NAMES = ["sum", "mean", "amin", "amax", "prod", "all"]
+REDUCE_NAMES = [
+    "sum",
+    "mean",
+    "amin",
+    "amax",
+    "argmin",
+    "argmax",
+    "prod",
+    "all",
+    "norm",
+    "var",
+    "std",
+]
 
 NATIVE_REDUCE_MAP = {
     getattr(torch.ops.aten, name): torch_reduce(name) for name in REDUCE_NAMES
