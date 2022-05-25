@@ -35,6 +35,7 @@ mt_binary_ufuncs = [op for op in binary_ufuncs if is_binary(op)]
 mt_reduction_ufuncs = [op for op in reduction_ops if is_reduction(op)]
 
 MASKEDTENSOR_FLOAT_TYPES = {
+    torch.float16,
     torch.float32,
     torch.float64,
 }

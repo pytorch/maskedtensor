@@ -52,6 +52,9 @@ def torch_reduce_all(fn):
         else:
             data = self.masked_data
             mask = self.masked_mask
+        # When reduction is "all", then torch.argmin/torch.argmax needs to return the index of the
+        # element corresponding to the min/max, but this operation isn't supported correctly for sparse layouts.
+        # Therefore, this implementation calculates it using the strides.
         if fn in {"argmin", "argmax"} and self.is_sparse():
             sparse_idx = masked_fn(data, mask=mask).to(dtype=torch.int)
             idx = self.masked_data.indices().unbind(1)[sparse_idx]

@@ -118,7 +118,13 @@ def torch_binary(fn_name):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
-        if args[0].layout != args[1].layout:
+        from maskedtensor import is_masked_tensor
+
+        if (
+            is_masked_tensor(args[0])
+            and is_masked_tensor(args[1])
+            and args[0].layout != args[1].layout
+        ):
             raise ValueError(
                 "Inputs should match sparsity/density. If you need support this, please open an issue on Github."
             )
