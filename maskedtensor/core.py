@@ -91,6 +91,61 @@ class MaskedContiguous(torch.autograd.Function):
         return grad_output
 
 
+LAYOUT_TO_INT = {
+    torch.strided: 1,
+    torch.sparse_coo: 2,
+}
+
+INT_TO_LAYOUT = {v: k for k, v in LAYOUT_TO_INT.items()}
+
+
+class MaskedToDense(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        assert (
+            input.layout in LAYOUT_TO_INT
+        ), f"to_dense: Unsupported input layout: {input.layout}"
+        ctx.save_for_backward(torch.tensor(LAYOUT_TO_INT[input.layout]))
+        assert is_masked_tensor(input)
+        if input.layout == torch.strided:
+            return input
+
+        data = get_data(input)
+        mask = get_mask(input)
+
+        return MaskedTensor(data.to_dense(), mask.to_dense())
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        (layout_tensor,) = ctx.saved_tensors
+        layout = INT_TO_LAYOUT[layout_tensor.item()]
+        if layout == torch.sparse_coo:
+            return grad_output.to_sparse()
+        elif layout == torch.strided:
+            return grad_output.to_dense()
+        raise ValueError("to_dense: Unsupported input layout: ", layout)
+
+
+class MaskedToSparse(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        assert is_masked_tensor(input)
+        if input.layout == torch.sparse_coo:
+            return input
+
+        mask = get_mask(input)
+        data = get_data(input)
+
+        sparse_mask = mask.to_sparse_coo().coalesce()
+        sparse_data = data.sparse_mask(sparse_mask)
+
+        return MaskedTensor(sparse_data, sparse_mask)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output.to_dense()
+
+
 # Needed until https://github.com/pytorch/pytorch/issues/65243 is fixed
 # since derivative includes usage of zeros_like
 # https://github.com/pytorch/pytorch/blob/master/tools/autograd/derivatives.yaml#L1516-L1519
@@ -231,6 +286,10 @@ class MaskedTensor(torch.Tensor):
             return MaskedWhere.apply(*args)
         if func is torch.Tensor.contiguous:
             return MaskedContiguous.apply(args[0])
+        if func is torch.Tensor.to_dense:
+            return MaskedToDense.apply(args[0])
+        if func is torch.Tensor.to_sparse:
+            return MaskedToSparse.apply(args[0])
         if not all(issubclass(cls, t) for t in types):
             return NotImplemented
         logging.debug("tf redispatching to td")
@@ -352,6 +411,54 @@ class MaskedTensor(torch.Tensor):
             assert is_masked_tensor(my)
             new_data = func(args[0], get_data(mx), get_data(my))
             new_mask = func(args[0], get_mask(mx), get_mask(my))
+            return MaskedTensor(new_data, new_mask)
+        if func is torch.ops.aten.to_sparse:
+            assert len(args) == 1
+            assert len(kwargs) == 0
+            assert torch.is_tensor(args[0])
+            mt = args[0]
+            if not is_masked_tensor(mt):
+                mt = MaskedTensor(mt, torch.ones_like(mt).bool())
+            if mt.is_sparse():
+                return mt
+            assert is_masked_tensor(mt)
+            new_mask = func(mask).coalesce()
+            new_data = data.sparse_mask(new_mask)
+            return MaskedTensor(new_data, new_mask)
+        if func in [torch.ops.aten._to_dense]:
+            assert len(args) == 1
+            assert len(kwargs) == 0
+            assert torch.is_tensor(args[0])
+            mt = args[0]
+            if not is_masked_tensor(mt):
+                mt = MaskedTensor(mt, torch.ones_like(mt).bool())
+            assert is_masked_tensor(mt)
+            new_data = func(data)
+            new_mask = func(mask)
+            return MaskedTensor(new_data, new_mask)
+        if func is torch.ops.aten._indices:
+            # Assumes data is sparse
+            assert len(args) == 1
+            assert len(kwargs) == 0
+            return MaskedTensor(data.indices(), torch.ones_like(data.indices()).bool())
+        if func is torch.ops.aten._values:
+            # Assumes data is sparse
+            assert len(args) == 1
+            assert len(kwargs) == 0
+            mt = args[0]
+            data = get_data(mt).values()
+            return MaskedTensor(data, torch.ones_like(data).bool())
+        if func is torch.ops.aten._sparse_coo_tensor_with_dims_and_tensors:
+            new_args = list(args)
+            if is_masked_tensor(args[-1]):
+                new_args[-1] = args[-1].masked_data
+            if is_masked_tensor(args[-2]):
+                new_args[-2] = args[-2].masked_data
+
+            new_data = func(*new_args, **kwargs)
+            new_args[-1] = torch.ones_like(new_args[-1])
+            new_mask = func(*new_args, **kwargs).bool()
+
             return MaskedTensor(new_data, new_mask)
         msg = (
             f"{func.__name__} is not implemented in __torch_dispatch__.\n"

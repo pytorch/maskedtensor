@@ -55,7 +55,7 @@ def _generate_sample_data(
         data = make_tensor(s, device=device, dtype=dtype, requires_grad=requires_grad)
         mask = _create_random_mask(s, device)
         if sparse:
-            mask = mask.to_sparse_coo()
-            data = data.sparse_mask(mask)
+            mask = mask.to_sparse_coo().coalesce()
+            data = data.sparse_mask(mask).requires_grad_(requires_grad)
         inputs.append(SampleInput(data, kwargs={"mask": mask}))
     return inputs
