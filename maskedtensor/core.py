@@ -82,6 +82,8 @@ class MaskedContiguous(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         assert is_masked_tensor(input)
+        if input.is_contiguous():
+            return input
         mask = get_mask(input)
         data = get_data(input)
         return MaskedTensor(data.contiguous(), mask.contiguous())
@@ -182,15 +184,12 @@ class MaskedTensor(torch.Tensor):
         kwargs["dtype"] = data.dtype
         kwargs["layout"] = data.layout
         kwargs["requires_grad"] = requires_grad
+        kwargs["dispatch_strides"] = True
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
     def _preprocess_data(self, data, mask):
         assert data.layout == mask.layout
-        if data.layout == torch.strided:
-            # .contiguous cannot be overwritten so it's always contiguous
-            data = data.contiguous()
-            mask = mask.contiguous()
-        elif data.layout == torch.sparse_coo:
+        if data.layout == torch.sparse_coo:
             data = data.coalesce()
             mask = mask.coalesce()
             if data._nnz() != mask._nnz():
@@ -341,6 +340,14 @@ class MaskedTensor(torch.Tensor):
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
         mask = get_mask(args[0])
+        if func is torch.ops.aten.is_contiguous:
+            if data.is_sparse:
+                raise ValueError("MaskedTensors with sparse data do not have is_contiguous")
+            return data.is_contiguous()
+        if func is torch.ops.aten.contiguous:
+            if data.is_sparse:
+                raise ValueError("MaskedTensors with sparse data do not have contiguous")
+            return MaskedContiguous.apply(args[0])
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
             assert tuple(args[1]) == tuple(data.size())
