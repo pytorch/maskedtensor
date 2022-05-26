@@ -155,8 +155,12 @@ class TestMaskedTensor(TestCase):
         contiguous_mt = masked_tensor(contiguous_data, mask1)
         not_contiguous_mt = masked_tensor(not_contiguous_data, mask2)
 
-        contiguous_mt_sparse = masked_tensor(contiguous_data.to_sparse_coo(), mask1.to_sparse_coo())
-        not_contiguous_mt_sparse = masked_tensor(not_contiguous_data.to_sparse_coo(), mask2.to_sparse_coo())
+        contiguous_mt_sparse = masked_tensor(
+            contiguous_data.to_sparse_coo(), mask1.to_sparse_coo()
+        )
+        not_contiguous_mt_sparse = masked_tensor(
+            not_contiguous_data.to_sparse_coo(), mask2.to_sparse_coo()
+        )
 
         self.assertEqual(contiguous_data.is_contiguous(), True)
         self.assertEqual(not_contiguous_data.is_contiguous(), False)
@@ -176,6 +180,7 @@ class TestMaskedTensor(TestCase):
         self.assertEqual(now_contiguous_mt.is_contiguous(), True)
         self.assertEqual(now_contiguous_mt.masked_data.is_contiguous(), True)
         self.assertEqual(now_contiguous_mt.is_contiguous(), True)
+
 
 if __name__ == "__main__":
     unittest.main()

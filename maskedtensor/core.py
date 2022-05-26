@@ -342,11 +342,15 @@ class MaskedTensor(torch.Tensor):
         mask = get_mask(args[0])
         if func is torch.ops.aten.is_contiguous:
             if data.is_sparse:
-                raise ValueError("MaskedTensors with sparse data do not have is_contiguous")
+                raise ValueError(
+                    "MaskedTensors with sparse data do not have is_contiguous"
+                )
             return data.is_contiguous()
         if func is torch.ops.aten.contiguous:
             if data.is_sparse:
-                raise ValueError("MaskedTensors with sparse data do not have contiguous")
+                raise ValueError(
+                    "MaskedTensors with sparse data do not have contiguous"
+                )
             return MaskedContiguous.apply(args[0])
         if func is torch.ops.aten.new_empty_strided:
             assert len(args) == 3
