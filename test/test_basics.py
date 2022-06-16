@@ -144,6 +144,43 @@ class TestMaskedTensor(TestCase):
 
             _compare_mts(mt.grad, mts.grad.to_dense())
 
+    def test_contiguous(self):
+        data = torch.randn(3, 3)
+
+        contiguous_data = data.clone()
+        mask1 = (contiguous_data > 0).bool()
+        not_contiguous_data = torch.as_strided(data.clone(), (2, 2), (1, 2))
+        mask2 = (not_contiguous_data > 0).bool()
+
+        contiguous_mt = masked_tensor(contiguous_data, mask1)
+        not_contiguous_mt = masked_tensor(not_contiguous_data, mask2)
+
+        contiguous_mt_sparse = masked_tensor(
+            contiguous_data.to_sparse_coo(), mask1.to_sparse_coo()
+        )
+        not_contiguous_mt_sparse = masked_tensor(
+            not_contiguous_data.to_sparse_coo(), mask2.to_sparse_coo()
+        )
+
+        self.assertEqual(contiguous_data.is_contiguous(), True)
+        self.assertEqual(not_contiguous_data.is_contiguous(), False)
+
+        self.assertEqual(contiguous_mt.is_contiguous(), True)
+        self.assertEqual(not_contiguous_mt.is_contiguous(), False)
+
+        error_msg = "MaskedTensors with sparse data do not have is_contiguous"
+        for t in [contiguous_mt_sparse, not_contiguous_mt_sparse]:
+            with self.assertRaisesRegex(ValueError, error_msg):
+                t.is_contiguous()
+            with self.assertRaisesRegex(ValueError, error_msg):
+                t.contiguous()
+
+        now_contiguous_mt = not_contiguous_mt.contiguous()
+
+        self.assertEqual(now_contiguous_mt.is_contiguous(), True)
+        self.assertEqual(now_contiguous_mt.masked_data.is_contiguous(), True)
+        self.assertEqual(now_contiguous_mt.is_contiguous(), True)
+
 
 if __name__ == "__main__":
     unittest.main()
