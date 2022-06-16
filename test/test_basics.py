@@ -173,7 +173,7 @@ class TestMaskedTensor(TestCase):
             with self.assertRaisesRegex(ValueError, error_msg):
                 t.is_contiguous()
             with self.assertRaisesRegex(ValueError, error_msg):
-                t.is_contiguous()
+                t.contiguous()
 
         now_contiguous_mt = not_contiguous_mt.contiguous()
 
