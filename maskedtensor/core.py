@@ -184,7 +184,7 @@ class MaskedTensor(torch.Tensor):
         kwargs["dtype"] = data.dtype
         kwargs["layout"] = data.layout
         kwargs["requires_grad"] = requires_grad
-        kwargs["dispatch_strides"] = True
+        kwargs["dispatch_sizes_strides_policy"] = "strides"
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
     def _preprocess_data(self, data, mask):
@@ -305,6 +305,9 @@ class MaskedTensor(torch.Tensor):
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs):
+        if func is torch.ops.aten.stride:
+            return None
+
         func = func.overloadpacket
 
         from maskedtensor import apply_reduction, is_reduction
