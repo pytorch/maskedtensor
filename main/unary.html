@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script>let toggleHintShow = 'Click to show';</script>
         <script>let toggleHintHide = 'Click to hide';</script>
@@ -37,7 +38,7 @@
   <a href="index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git0addd73) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+gitc4f1d62) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -94,7 +95,7 @@
            <div itemprop="articleBody">
              
   <section id="unary-operations">
-<h1>Unary Operations<a class="headerlink" href="#unary-operations" title="Permalink to this headline"></a></h1>
+<h1>Unary Operations<a class="headerlink" href="#unary-operations" title="Permalink to this heading"></a></h1>
 <p>Unary operators are operators that only contain only a single input. Applying them to MaskedTensors
 is relatively straightforward at the moment: if the data is masked out at a given index, we apply the operator,
 and if not, then we’ll continue to mask out the data.</p>
@@ -265,7 +266,7 @@ and if not, then we’ll continue to mask out the data.</p>
 <td><p>This function is an extension of torch.sign() to complex tensors.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">signbit</span></code></p></td>
-<td><p>Tests if each element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> has its sign bit set (is less than zero) or not.</p></td>
+<td><p>Tests if each element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> has its sign bit set or not.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sin</span></code></p></td>
 <td><p>Returns a new tensor with the sine of the elements of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>.</p></td>
@@ -307,7 +308,7 @@ and if not, then we’ll continue to mask out the data.</p>
 <td><p>Returns <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">signbit</span></code></p></td>
-<td><p>Tests if each element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> has its sign bit set (is less than zero) or not.</p></td>
+<td><p>Tests if each element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> has its sign bit set or not.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">isnan</span></code></p></td>
 <td><p>Returns a new tensor with boolean elements representing if each element of <code class="xref py py-attr docutils literal notranslate"><span class="pre">input</span></code> is NaN or not.</p></td>
