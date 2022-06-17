@@ -57,10 +57,16 @@ def torch_reduce_all(fn):
         # Therefore, this implementation calculates it using the strides.
         if fn in {"argmin", "argmax"} and self.is_sparse():
             sparse_idx = masked_fn(data, mask=mask).to(dtype=torch.int)
-            idx = self.masked_data.indices().unbind(1)[sparse_idx]
+            indices = (
+                self.masked_data.to_sparse_coo().indices()
+                if not self.is_sparse_coo()
+                else self.masked_data.indices()
+            )
+            idx = indices.unbind(1)[sparse_idx]
             stride = self.masked_data.size().numel() / torch.tensor(
                 self.masked_data.size()
             ).cumprod(0)
+
             return masked_tensor(torch.sum(idx * stride), torch.any(mask))
 
         return masked_tensor(masked_fn(data, mask=mask), torch.any(mask))
