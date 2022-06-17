@@ -221,8 +221,7 @@ class MaskedTensor(torch.Tensor):
         kwargs["layout"] = data.layout
         kwargs["requires_grad"] = requires_grad
         kwargs["dispatch_sizes_strides_policy"] = "strides"
-        # type: ignore[attr-defined]
-        return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
+        return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
     def _preprocess_data(self, data, mask):
         assert data.layout == mask.layout
