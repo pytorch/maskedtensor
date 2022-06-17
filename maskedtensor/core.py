@@ -235,11 +235,6 @@ class MaskedTensor(torch.Tensor):
     def _set_data_mask(self, data, mask):
         # This method is regrettably necessary for in-place operations
 
-        if data.layout == torch.strided:
-            # .contiguous cannot be overwritten so it's always contiguous
-            data = data.contiguous()
-            mask = mask.contiguous()
-
         self.masked_data = data
         self.masked_mask = mask
         self._validate_members()
