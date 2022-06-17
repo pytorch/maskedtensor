@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.13.8
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: Python 3.9.7 ('pytorch_env')
   language: python
   name: python3
 ---
@@ -21,17 +21,10 @@ kernelspec:
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pytorch/maskedtensor/blob/main/docs/source/notebooks/overview.ipynb)
 
 ```{code-cell} ipython3
-import torch
-import numpy as np
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
-```
-
-```{code-cell} ipython3
 :id: XHPLFh2Qf4ZL
 
-# Import factory function
+import torch
+import numpy as np
 from maskedtensor import masked_tensor
 from maskedtensor import as_masked_tensor
 ```
@@ -268,39 +261,4 @@ z.sum().backward()
 print("\nx.grad: ", x.grad)
 # The regular torch.Tensor now has a MaskedTensor grad
 print("y.grad: ", y.grad)
-```
-
-### A note on is_contiguous
-
-```{code-cell} ipython3
----
-colab:
-  base_uri: https://localhost:8080/
-id: ITWFisob5xNG
-outputId: f6a6c891-212c-411d-923b-9d77fc5bcb4c
----
-# is_contiguous doesn't work
-t = torch.arange(4).reshape(1, 2, 2).float()
-mask = (t > 0).bool().clone()
-t = t.clone()
-mt = masked_tensor(t, mask)
-mt = mt.view(mt.size())
-mt = mt.transpose(0, 1)
-print(mt.is_contiguous(), mt.size(), mt.stride())
-print(mt.masked_data.is_contiguous(), mt.masked_data.size(), mt.masked_data.stride())
-mt = mt.view(mt.size())
-print(mt.is_contiguous(), mt.size(), mt.stride())
-mt = mt.contiguous()
-print(mt.is_contiguous(), mt.size(), mt.stride())
-```
-
-```{code-cell} ipython3
-:id: kHqeS_pwvQkD
-
-# Because .contiguous doesn't work we need to modify view to use reshape instead
-mask = (t > 0).bool().clone()
-t = t.clone()
-mt = masked_tensor(t, mask, requires_grad=True)
-mt = mt.view([4])
-mt.sum().backward()
 ```

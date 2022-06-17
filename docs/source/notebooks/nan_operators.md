@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.13.8
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: Python 3.9.7 ('pytorch_env')
   language: python
   name: python3
 ---
@@ -20,15 +20,7 @@ kernelspec:
 
 ```{code-cell} ipython3
 import torch
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
-```
-
-```{code-cell} ipython3
-# Import factory function
 from maskedtensor import masked_tensor
-from maskedtensor import as_masked_tensor
 ```
 
 ### [Issue 21987](https://github.com/pytorch/pytorch/issues/21987)
@@ -57,7 +49,3 @@ print(torch.mean(masked_tensor(x, ~torch.isnan(x))))
 ```
 
 Further [some users](https://github.com/pytorch/pytorch/issues/63870) already want to use nan reductions to encode masked semantics.
-
-```{code-cell} ipython3
-
-```

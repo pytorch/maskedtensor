@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.13.8
 kernelspec:
-  display_name: Python 3.6.9 64-bit
+  display_name: Python 3.9.7 ('pytorch_env')
   language: python
   name: python3
 ---
@@ -195,8 +195,4 @@ param2 = param2.add((masked_grad / std2).to_tensor(0), alpha=-clr)
 # We ran this code again so let's check that the results again match
 print("param:\n", param)
 print("param2:\n", param2)
-```
-
-```{code-cell} ipython3
-
 ```
