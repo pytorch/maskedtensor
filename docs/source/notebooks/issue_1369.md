@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.7
+    jupytext_version: 1.13.8
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: Python 3.6.9 64-bit
   language: python
   name: python3
 ---
@@ -34,13 +34,6 @@ In particular we'll point out when sparsity is used as a semantic extension, i.e
 
 ```{code-cell} ipython3
 import torch
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
-```
-
-```{code-cell} ipython3
-# Import factory function
 from maskedtensor import masked_tensor
 from maskedtensor import as_masked_tensor
 ```
@@ -84,7 +77,7 @@ state_sum.add_(_make_sparse(grad, grad_indices, grad_values.pow(2)))
 # We take care to make std sparse, even though state_sum clearly is not.
 # This means that we're only applying the gradient to parts of the state_sum
 # for which it is specified. This even drives the point home a lot more that
-# the passed gradient is not sparse, but masked.
+# the passed gradient is not sparse, but masked. 
 std = state_sum.sparse_mask(grad)
 print("state_sum:\n", state_sum)
 print("std:\n", std.to_dense())
@@ -99,7 +92,7 @@ Even though they could be compressed by other sparse storage layouts.
 This is technically quite brittle even though someone could argue that eps is
 always very small.
 
-More so an implementation add\_ for sparsity as a storage layout and compression
+More so an implementation add_ for sparsity as a storage layout and compression
 scheme should cause densification, but we force it not to. For this one-off
 case it is fine until we want to introduce new compression schemes such as
 CSR, BSR or 2:4 block sparsity. We'll then need to introduce separate Tensor

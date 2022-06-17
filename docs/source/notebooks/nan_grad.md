@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.7
+    jupytext_version: 1.13.8
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: Python 3.9.7 ('pytorch_env')
   language: python
   name: python3
 ---
@@ -21,13 +21,6 @@ kernelspec:
 ```{code-cell} ipython3
 import torch
 import numpy as np
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
-```
-
-```{code-cell} ipython3
-# Import factory function
 from maskedtensor import masked_tensor
 from maskedtensor import as_masked_tensor
 ```

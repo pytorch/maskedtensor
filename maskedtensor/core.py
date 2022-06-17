@@ -210,6 +210,8 @@ class MaskedTensor(torch.Tensor):
         assert data.layout == mask.layout
         assert data.layout in [torch.strided, torch.sparse_coo]
         if data.layout == torch.sparse_coo:
+            print ("data", data.indices())
+            print ("mask", mask.indices())
             assert _tensors_match(data.indices(), mask.indices(), exact=True)
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
