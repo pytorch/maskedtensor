@@ -173,7 +173,7 @@ print("\nnpm1:\n", npm1)
 print("\n(npm0 + npm1).sum(0):\n", (npm0 + npm1).sum(0))
 print("\nnpm0.sum(0) + npm1.sum(0):\n", (npm0.sum(0) + npm1.sum(0)))
 print("\n(data0 + data1).sum(0):\n", (data0 + data1).sum(0))
-print("\n(data0 + data1).sum(0):\n", (data0.sum(0) + data1.sum(0)))
+print("\ndata0.sum(0) + data1.sum(0):\n", (data0.sum(0) + data1.sum(0)))
 ```
 
 +++ {"id": "FjSyaqqKgvYh"}
