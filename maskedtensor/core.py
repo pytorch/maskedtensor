@@ -4,7 +4,6 @@ import logging
 import os
 
 import torch
-from torch.autograd import Function
 from torch._masked import _sparse_coo_where, _sparse_csr_where
 from torch.overrides import get_default_nowrap_functions
 
