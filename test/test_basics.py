@@ -114,7 +114,7 @@ class TestMaskedTensor(TestCase):
     def test_to_dense(self):
         samples = _generate_sample_data(
             layout=torch.sparse_coo
-        )  # + _generate_sample_data(layout=torch.sparse_csr)
+        ) + _generate_sample_data(layout=torch.sparse_csr)
         for sample in samples:
             data = sample.input
             mask = sample.kwargs["mask"]
@@ -139,35 +139,34 @@ class TestMaskedTensor(TestCase):
             mt = masked_tensor(t1, mask, requires_grad=True)
             mts = masked_tensor(t1s, ms, requires_grad=True)
 
-            converted = mt.to_sparse().to_dense()
+            converted = mt.to_sparse().to_dense().requires_grad_(True)
+            converted.sum().backward()
+
+            converted2 = mts.to_dense().requires_grad_(True)
+            converted2.sum().backward()
+
+            _compare_mts(mt.grad, mts.grad.to_dense())
+
+    def test_to_dense_and_sparse_csr(self):
+        for sample in _generate_sample_data(layout=torch.strided):
+            data = sample.input
+            mask = sample.kwargs["mask"]
+            if data.ndim != 2:
+                continue
+            ms = mask.to_sparse_csr()
+
+            t1 = data.clone().detach().requires_grad_(True)
+            t1s = data.sparse_mask(ms).clone().detach().requires_grad_(True)
+            mt = masked_tensor(t1, mask, requires_grad=True)
+            mts = masked_tensor(t1s, ms, requires_grad=True)
+
+            converted = mt.to_sparse_csr().to_dense()
             converted.sum().backward()
 
             converted2 = mts.to_dense()
             converted2.sum().backward()
 
             _compare_mts(mt.grad, mts.grad.to_dense())
-
-    # This fails for some reason
-    # def test_to_dense_and_sparse_csr(self):
-    #     for sample in _generate_sample_data(layout=torch.strided):
-    #         data = sample.input
-    #         mask = sample.kwargs["mask"]
-    #         if data.ndim != 2:
-    #             continue
-    #         ms = mask.to_sparse_csr()
-
-    #         t1 = data.clone().detach().requires_grad_(True)
-    #         t1s = data.sparse_mask(ms).clone().detach().requires_grad_(True)
-    #         mt = masked_tensor(t1, mask, requires_grad=True)
-    #         mts = masked_tensor(t1s, ms, requires_grad=True)
-
-    #         converted = mt.to_sparse_csr().to_dense()
-    #         converted.sum().backward()
-
-    #         converted2 = mts.to_dense()
-    #         converted2.sum().backward()
-
-    #         _compare_mts(mt.grad, mts.grad.to_dense())
 
     def test_contiguous(self):
         data = torch.randn(3, 3)
