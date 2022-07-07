@@ -2,6 +2,8 @@
 
 import torch
 
+from .core import _masks_match, _tensors_match
+
 BINARY_NAMES = [
     "add",
     #    "addcdiv",
@@ -75,28 +77,11 @@ def get_mask(a):
     return None
 
 
-def tensors_match(a, b):
-    if a.layout == b.layout == torch.sparse_coo:
-        a = a.to_dense()
-        b = b.to_dense()
-    return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
-
-
-def masks_match(a, b):
-    from maskedtensor import is_masked_tensor
-
-    if is_masked_tensor(a) and is_masked_tensor(b):
-        mask_a = get_mask(a)
-        mask_b = get_mask(b)
-        return tensors_match(mask_a, mask_b)
-    return True
-
-
 def get_at_least_one_mask(a, b):
     from maskedtensor import is_masked_tensor
 
     assert is_masked_tensor(a) or is_masked_tensor(b)
-    assert masks_match(a, b)
+    assert _masks_match(a, b)
     if is_masked_tensor(a):
         return get_mask(a)
     return get_mask(b)
@@ -114,7 +99,7 @@ def torch_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        if not masks_match(*args[:2]):
+        if not _masks_match(*args[:2]):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
@@ -123,7 +108,7 @@ def torch_binary(fn_name):
         if (
             is_masked_tensor(args[0])
             and is_masked_tensor(args[1])
-            and args[0].layout != args[1].layout
+            and args[0].layout() != args[1].layout()
         ):
             raise ValueError(
                 "Inputs should match sparsity/density. If you need support this, please open an issue on Github."
@@ -132,10 +117,10 @@ def torch_binary(fn_name):
             args, kwargs, lambda x: x.masked_data
         )
         result_mask = get_at_least_one_mask(*args[:2])
-        if args[0].layout == torch.sparse_coo:
-            if not tensors_match(data_args[0].indices(), data_args[1].indices()):
+        if args[0].layout() == torch.sparse_coo:
+            if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
                 raise ValueError(
-                    "Sparse indices must match. If you need support for this, please open an issue on Github."
+                    "sparse_coo indices must match. If you need support for this, please open an issue on Github."
                 )
             assert data_args[0].size() == data_args[1].size()
             i = data_args[0].indices()
@@ -144,6 +129,23 @@ def torch_binary(fn_name):
             data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size)
+        elif args[0].layout() == torch.sparse_csr:
+            if not (
+                _tensors_match(data_args[0].crow_indices(), data_args[1].crow_indices())
+                and _tensors_match(
+                    data_args[0].col_indices(), data_args[1].col_indices()
+                )
+            ):
+                raise ValueError(
+                    "sparse_csr indices must match. If you need support for this, please open an issue on Github."
+                )
+
+            crow = data_args[0].crow_indices()
+            col = data_args[0].col_indices()
+            data_args[0] = data_args[0].values()
+            data_args[1] = data_args[1].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_csr_tensor(crow, col, v)
         else:
             result_data = fn(*data_args)
             # sparse tensors don't have strides
@@ -165,17 +167,17 @@ def torch_inplace_binary(fn_name):
         mask_args, mask_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_mask
         )
-        if not masks_match(*args[:2]):
+        if not _masks_match(*args[:2]):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        if args[0].layout == torch.sparse_coo:
-            if not tensors_match(data_args[0].indices(), data_args[1].indices()):
+        if args[0].layout() == torch.sparse_coo:
+            if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
                 raise ValueError(
-                    "Sparse indices must match. If you need support for this, please open an issue on Github."
+                    "sparse_coo indices must match. If you need support for this, please open an issue on Github."
                 )
             assert data_args[0].size() == data_args[1].size()
             i = data_args[0].indices()
@@ -184,6 +186,23 @@ def torch_inplace_binary(fn_name):
             data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size)
+        elif args[0].layout() == torch.sparse_csr:
+            if not (
+                _tensors_match(data_args[0].crow_indices(), data_args[1].crow_indices())
+                and _tensors_match(
+                    data_args[0].col_indices(), data_args[1].col_indices()
+                )
+            ):
+                raise ValueError(
+                    "sparse_csr indices must match. If you need support for this, please open an issue on Github."
+                )
+
+            crow = data_args[0].crow_indices()
+            col = data_args[0].col_indices()
+            data_args[0] = data_args[0].values()
+            data_args[1] = data_args[1].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_csr_tensor(crow, col, v)
         else:
             result_data = fn(*data_args)
 

@@ -116,13 +116,19 @@ def torch_unary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        if args[0].layout == torch.sparse_coo:
-            s = data_args[0].size()
+        if args[0].layout() == torch.sparse_coo:
             data_args[0] = data_args[0].coalesce()
+            s = data_args[0].size()
             i = data_args[0].indices()
             data_args[0] = data_args[0].coalesce().values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size=s)
+        elif args[0].layout() == torch.sparse_csr:
+            crow = data_args[0].crow_indices()
+            col = data_args[0].col_indices()
+            data_args[0] = data_args[0].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_csr_tensor(crow, col, v)
         else:
             result_data = fn(*data_args)
         return _wrap_result(result_data, mask_args[0])
@@ -145,12 +151,18 @@ def torch_inplace_unary(fn_name):
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
-        if data_args[0].layout == torch.sparse_coo:
+        if args[0].layout() == torch.sparse_coo:
             s = data_args[0].size()
             i = data_args[0].indices()
             data_args[0] = data_args[0].values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size=s)
+        elif args[0].layout() == torch.sparse_csr:
+            crow = data_args[0].crow_indices()
+            col = data_args[0].col_indices()
+            data_args[0] = data_args[0].values()
+            v = fn(*data_args)
+            result_data = torch.sparse_csr_tensor(crow, col, v)
         else:
             result_data = fn(*data_args)
         args[0]._set_data_mask(result_data, mask_args[0])
