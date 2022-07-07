@@ -4,7 +4,7 @@ import logging
 import os
 
 import torch
-from torch._masked import _sparse_coo_where
+from torch._masked import _sparse_coo_where, _sparse_csr_where
 from torch.overrides import get_default_nowrap_functions
 
 logging.basicConfig(level=getattr(logging, os.getenv("MTLOGLEVEL", "INFO")))
@@ -15,12 +15,19 @@ def is_masked_tensor(a):
 
 
 def _tensors_match(a, b, exact=True):
+    assert not is_masked_tensor(a) and not is_masked_tensor(b)
     assert a.layout == b.layout
     if a.dtype != b.dtype:
         b = b.type(a.dtype)
     if a.layout == b.layout == torch.sparse_coo:
         return _tensors_match(a.values(), b.values(), exact) and _tensors_match(
             a.indices(), b.indices(), exact
+        )
+    elif a.layout == b.layout == torch.sparse_csr:
+        return (
+            _tensors_match(a.crow_indices(), b.crow_indices(), exact)
+            and _tensors_match(a.col_indices(), b.col_indices(), exact)
+            and _tensors_match(a.values(), b.values(), exact)
         )
     if exact:
         return (a.dim() == b.dim()) and torch.eq(a, b).all().item()
@@ -36,7 +43,7 @@ def _masks_match(a, b):
 
 
 def masked_tensor_str(data, mask, formatter):
-    if data.layout == torch.sparse_coo:
+    if data.layout in {torch.sparse_coo, torch.sparse_csr}:
         data = data.to_dense()
         mask = mask.to_dense()
     if data.dim() == 1:
@@ -96,6 +103,7 @@ class MaskedContiguous(torch.autograd.Function):
 LAYOUT_TO_INT = {
     torch.strided: 1,
     torch.sparse_coo: 2,
+    torch.sparse_csr: 3,
 }
 
 INT_TO_LAYOUT = {v: k for k, v in LAYOUT_TO_INT.items()}
@@ -104,13 +112,15 @@ INT_TO_LAYOUT = {v: k for k, v in LAYOUT_TO_INT.items()}
 class MaskedToDense(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
-        assert (
-            input.layout in LAYOUT_TO_INT
-        ), f"to_dense: Unsupported input layout: {input.layout}"
-        ctx.save_for_backward(torch.tensor(LAYOUT_TO_INT[input.layout]))
         assert is_masked_tensor(input)
-        if input.layout == torch.strided:
+        assert (
+            input.layout() in LAYOUT_TO_INT
+        ), f"to_dense: Unsupported input layout: {input.layout()}"
+
+        if input.layout() == torch.strided:
             return input
+
+        ctx.save_for_backward(torch.tensor(LAYOUT_TO_INT[input.layout()]))
 
         data = get_data(input)
         mask = get_mask(input)
@@ -121,8 +131,11 @@ class MaskedToDense(torch.autograd.Function):
     def backward(ctx, grad_output):
         (layout_tensor,) = ctx.saved_tensors
         layout = INT_TO_LAYOUT[layout_tensor.item()]
+
         if layout == torch.sparse_coo:
-            return grad_output.to_sparse()
+            return grad_output.to_sparse_coo()
+        elif layout == torch.sparse_csr:
+            return grad_output.to_sparse_csr()
         elif layout == torch.strided:
             return grad_output.to_dense()
         raise ValueError("to_dense: Unsupported input layout: ", layout)
@@ -132,13 +145,38 @@ class MaskedToSparse(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         assert is_masked_tensor(input)
-        if input.layout == torch.sparse_coo:
+        # Following the convention from sparse  tensors that to_sparse always means that we convert to sparse_coo
+        if input.layout() == torch.sparse_coo:
             return input
 
         mask = get_mask(input)
         data = get_data(input)
 
         sparse_mask = mask.to_sparse_coo().coalesce()
+        sparse_data = data.sparse_mask(sparse_mask)
+
+        return MaskedTensor(sparse_data, sparse_mask)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output.to_dense()
+
+
+class MaskedToSparseCsr(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        assert is_masked_tensor(input)
+        assert (
+            input.masked_data.ndim == 2
+        ), f"Only 2D tensors can be converted to the SparseCsr layout but got shape: {input.masked_data.size()}"
+
+        if input.layout() == torch.sparse_csr:
+            return input
+
+        mask = get_mask(input)
+        data = get_data(input)
+
+        sparse_mask = mask.to_sparse_csr()
         sparse_data = data.sparse_mask(sparse_mask)
 
         return MaskedTensor(sparse_data, sparse_mask)
@@ -185,6 +223,7 @@ class MaskedTensor(torch.Tensor):
         kwargs["layout"] = data.layout
         kwargs["requires_grad"] = requires_grad
         kwargs["dispatch_sizes_strides_policy"] = "strides"
+        kwargs["dispatch_layout"] = True
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
 
     def _preprocess_data(self, data, mask):
@@ -194,6 +233,9 @@ class MaskedTensor(torch.Tensor):
             mask = mask.coalesce()
             if data._nnz() != mask._nnz():
                 data = _sparse_coo_where(mask, data, torch.tensor(0))
+        elif data.layout == torch.sparse_csr:
+            if data._nnz() != mask._nnz():
+                data = _sparse_csr_where(mask, data, torch.tensor(0))
 
         logging.debug(f"data.dim(): {data.dim()}  mask.dim(): {mask.dim()}")
         logging.debug(f"data.size(): {data.size()} mask.size(): {mask.size()}")
@@ -208,9 +250,17 @@ class MaskedTensor(torch.Tensor):
         mask = self.masked_mask
         assert type(data) == type(mask)
         assert data.layout == mask.layout
-        assert data.layout in [torch.strided, torch.sparse_coo]
+        assert data.layout in {torch.strided, torch.sparse_coo, torch.sparse_csr}
         if data.layout == torch.sparse_coo:
+            self.masked_layout = torch.sparse_coo
             assert _tensors_match(data.indices(), mask.indices(), exact=True)
+        elif data.layout == torch.sparse_csr:
+            self.masked_layout = torch.sparse_csr
+            assert _tensors_match(
+                data.crow_indices(), mask.crow_indices(), exact=True
+            ) and _tensors_match(data.col_indices(), mask.col_indices(), exact=True)
+        else:
+            self.masked_layout = torch.strided
         assert torch.is_tensor(data)
         assert mask.dtype == torch.bool
         assert (
@@ -284,6 +334,8 @@ class MaskedTensor(torch.Tensor):
             return MaskedToDense.apply(args[0])
         if func is torch.Tensor.to_sparse:
             return MaskedToSparse.apply(args[0])
+        if func is torch.Tensor.to_sparse_csr:
+            return MaskedToSparseCsr.apply(args[0])
         if not all(issubclass(cls, t) for t in types):
             return NotImplemented
         logging.debug("tf redispatching to td")
@@ -338,6 +390,8 @@ class MaskedTensor(torch.Tensor):
         # Doesn't work for addmm where the first argument is a Tensor
         data = get_data(args[0])
         mask = get_mask(args[0])
+        if func is torch.ops.prim.layout:
+            return data.layout
         if func is torch.ops.aten.is_contiguous:
             if data.is_sparse:
                 raise ValueError(
@@ -428,10 +482,23 @@ class MaskedTensor(torch.Tensor):
             mt = args[0]
             if not is_masked_tensor(mt):
                 mt = MaskedTensor(mt, torch.ones_like(mt).bool())
-            if mt.is_sparse():
+            if mt.is_sparse_coo():
                 return mt
             assert is_masked_tensor(mt)
             new_mask = func(mask).coalesce()
+            new_data = data.sparse_mask(new_mask)
+            return MaskedTensor(new_data, new_mask)
+        if func is torch.ops.aten.to_sparse_csr:
+            assert len(args) == 1
+            assert len(kwargs) == 0
+            assert torch.is_tensor(args[0])
+            mt = args[0]
+            if not is_masked_tensor(mt):
+                mt = MaskedTensor(mt, torch.ones_like(mt).bool())
+            if mt.is_sparse_csr():
+                return mt
+            assert is_masked_tensor(mt)
+            new_mask = func(mask)
             new_data = data.sparse_mask(new_mask)
             return MaskedTensor(new_data, new_mask)
         if func in [torch.ops.aten._to_dense]:
@@ -488,9 +555,15 @@ class MaskedTensor(torch.Tensor):
     def mask(self):
         return self.masked_mask
 
+    def layout(self):
+        return self.masked_layout
+
     def is_sparse_coo(self):
-        return self.layout == torch.sparse_coo
+        return self.layout() == torch.sparse_coo
+
+    def is_sparse_csr(self):
+        return self.layout() == torch.sparse_csr
 
     # Update later to support more sparse layouts
     def is_sparse(self):
-        return self.is_sparse_coo()
+        return self.is_sparse_coo() or self.is_sparse_csr()

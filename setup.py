@@ -17,7 +17,7 @@ ROOT_DIR = Path(__file__).parent.resolve()
 
 
 def _get_version(nightly=False, release=False):
-    version = "0.11.0"
+    version = "0.12.0"
     sha = "Unknown"
     try:
         sha = (
@@ -82,7 +82,7 @@ class clean(distutils.command.clean.clean):
 
 
 requirements = [
-    "torch>1.11.0",
+    "torch>1.12.0",
 ]
 readme = open("README.md").read()
 

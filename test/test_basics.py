@@ -112,7 +112,10 @@ class TestMaskedTensor(TestCase):
             _compare_mt_t(mt.grad, data.grad)
 
     def test_to_dense(self):
-        for sample in _generate_sample_data(sparse=True):
+        samples = _generate_sample_data(
+            layout=torch.sparse_coo
+        ) + _generate_sample_data(layout=torch.sparse_csr)
+        for sample in samples:
             data = sample.input
             mask = sample.kwargs["mask"]
             mt = masked_tensor(data.clone().detach(), mask, requires_grad=True)
@@ -125,8 +128,8 @@ class TestMaskedTensor(TestCase):
             _compare_mt_t(dense_mt, dense_data)
             _compare_mt_t(mt.grad.to_dense(), dense_data.grad)
 
-    def test_to_dense_and_sparse(self):
-        for sample in _generate_sample_data():
+    def test_to_dense_and_sparse_coo(self):
+        for sample in _generate_sample_data(layout=torch.strided):
             data = sample.input
             mask = sample.kwargs["mask"]
             ms = mask.to_sparse_coo().coalesce()
@@ -136,7 +139,28 @@ class TestMaskedTensor(TestCase):
             mt = masked_tensor(t1, mask, requires_grad=True)
             mts = masked_tensor(t1s, ms, requires_grad=True)
 
-            converted = mt.to_sparse().to_dense()
+            converted = mt.to_sparse().to_dense().requires_grad_(True)
+            converted.sum().backward()
+
+            converted2 = mts.to_dense().requires_grad_(True)
+            converted2.sum().backward()
+
+            _compare_mts(mt.grad, mts.grad.to_dense())
+
+    def test_to_dense_and_sparse_csr(self):
+        for sample in _generate_sample_data(layout=torch.strided):
+            data = sample.input
+            mask = sample.kwargs["mask"]
+            if data.ndim != 2:
+                continue
+            ms = mask.to_sparse_csr()
+
+            t1 = data.clone().detach().requires_grad_(True)
+            t1s = data.sparse_mask(ms).clone().detach().requires_grad_(True)
+            mt = masked_tensor(t1, mask, requires_grad=True)
+            mts = masked_tensor(t1s, ms, requires_grad=True)
+
+            converted = mt.to_sparse_csr().to_dense()
             converted.sum().backward()
 
             converted2 = mts.to_dense()
