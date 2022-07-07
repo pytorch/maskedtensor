@@ -32,7 +32,7 @@ Sparse storage formats have been proven to be powerful in a variety of ways. As 
 
 <div class="alert alert-info">
 
-**Note:** Currently, only the COO and CSR sparse storage formats are supported in MaskedTensor (BSR and CSC will be developed in the future). If you have another format that you would like supported, please file an issue!
+Note: Currently, only the COO and CSR sparse storage formats are supported in MaskedTensor (BSR and CSC will be developed in the future). If you have another format that you would like supported, please file an issue!
 
 </div>
 
@@ -84,7 +84,7 @@ the following is simply shorter to write / easier to use
 values = torch.tensor([[0, 0, 3], [4, 0, 5]]).to_sparse()
 mask = torch.tensor([[False, False, True], [False, False, True]]).to_sparse()
 
-mt = masked_tensor(values, mask)  
+mt = masked_tensor(values, mask)
 
 print("values:\n", values.to_dense())
 print("mask:\n", mask.to_dense())

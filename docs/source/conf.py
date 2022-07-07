@@ -83,7 +83,7 @@ exclude_patterns = [
     "README.md",
     "notebooks/*.md",
     "generated/*",
-    "**.ipynb_checkpoints"
+    "**.ipynb_checkpoints",
 ]
 
 # Notebook cell execution timeout; defaults to 30.
