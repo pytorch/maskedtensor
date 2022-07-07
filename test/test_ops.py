@@ -41,7 +41,7 @@ MASKEDTENSOR_FLOAT_TYPES = {
 }
 
 
-def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
+def _test_unary_binary_equality(device, dtype, op, layout=torch.strided):
     samples = op.sample_inputs(device, dtype, requires_grad=True)
 
     for sample in samples:
@@ -53,8 +53,13 @@ def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
             else sample_kwargs.pop("mask")
         )
 
-        if is_sparse:
+        if layout == torch.sparse_coo:
             mask = mask.to_sparse_coo().coalesce()
+            input = input.sparse_mask(mask)
+        elif layout == torch.sparse_csr:
+            if input.ndim != 2 or mask.ndim != 2:
+                continue
+            mask = mask.to_sparse_csr()
             input = input.sparse_mask(mask)
 
         # Binary operations currently only support same size masks
@@ -67,13 +72,20 @@ def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(arg.sparse_mask(mask) if is_sparse else arg, mask)
+            masked_tensor(
+                arg.sparse_mask(mask) if layout != torch.strided else arg, mask
+            )
             if torch.is_tensor(arg)
             else arg
             for arg in sample_args
         ]
 
+        print("input", input)
+        print("mask", mask)
+        print("args", mt_args)
+        print("calculating mt result")
         mt_result = op(mt, *mt_args, **sample_kwargs)
+        print("calculating t_result")
         t_result = op(sample.input, *sample_args, **sample_kwargs)
 
         _compare_mt_t(mt_result, t_result)
@@ -84,7 +96,7 @@ def _test_unary_binary_equality(device, dtype, op, is_sparse=False):
             _compare_mt_t(mt_result2, t_result)
 
 
-def _test_reduction_equality(device, dtype, op, is_sparse=False):
+def _test_reduction_equality(device, dtype, op, layout=torch.strided):
     samples = op.sample_inputs(device, dtype, requires_grad=True)
 
     for sample in samples:
@@ -109,13 +121,20 @@ def _test_reduction_equality(device, dtype, op, is_sparse=False):
             continue
 
         tensor_input = _combine_input_and_mask(op.op, input, mask)
-        if is_sparse:
+        if layout == torch.sparse_coo:
             mask = mask.to_sparse_coo().coalesce()
+            input = input.sparse_mask(mask)
+        elif layout == torch.sparse_csr:
+            if input.ndim != 2 or mask.ndim != 2:
+                continue
+            mask = mask.to_sparse_csr()
             input = input.sparse_mask(mask)
 
         mt = masked_tensor(input, mask)
         mt_args = [
-            masked_tensor(arg.sparse_mask(mask) if is_sparse else arg, mask)
+            masked_tensor(
+                arg.sparse_mask(mask) if layout != torch.strided else arg, mask
+            )
             if torch.is_tensor(arg)
             else arg
             for arg in sample_args
@@ -162,19 +181,24 @@ class TestOperators(TestCase):
         }
         if op.name == "round" and op.variant_test_name in skip_variants:
             return
-        _test_unary_binary_equality(device, dtype, op, True)
+
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_coo)
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_csr)
 
     @ops(mt_binary_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
     def test_binary_core_sparse(self, device, dtype, op):
-        _test_unary_binary_equality(device, dtype, op, True)
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_coo)
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_csr)
 
     @ops(mt_reduction_ufuncs, allowed_dtypes=MASKEDTENSOR_FLOAT_TYPES)
     def test_reduction_all_sparse(self, device, dtype, op):
-        _test_reduction_equality(device, dtype, op, True)
+        _test_reduction_equality(device, dtype, op, torch.sparse_coo)
+        _test_reduction_equality(device, dtype, op, torch.sparse_csr)
 
     @ops(additional_op_db, allowed_dtypes=(torch.float,))
     def test_maskedtensor_results_sparse(self, device, dtype, op):
-        _test_unary_binary_equality(device, dtype, op, True)
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_coo)
+        _test_unary_binary_equality(device, dtype, op, torch.sparse_csr)
 
 
 only_for = ("cpu", "cuda")
