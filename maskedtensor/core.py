@@ -549,8 +549,11 @@ class MaskedTensor(torch.Tensor):
     def __lt__(self, other):
         return MaskedTensor(get_data(self) < other, get_mask(self))
 
-    def to_tensor(self, value):
+    def to_tensor(self):
         return get_data(self).masked_fill(~get_mask(self), value)
+
+    def data(self):
+        return self.masked_data
 
     def mask(self):
         return self.masked_mask

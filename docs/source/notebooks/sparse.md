@@ -55,7 +55,7 @@ import torch
 from maskedtensor import masked_tensor
 ```
 
-In according with Principle #1, a sparse MaskedTensor is created by passing in two sparse tensors, which can be initialized with any of the constructors, e.g. `torch.sparse_coo_tensor`.
+In accordance with Principle #1, a sparse MaskedTensor is created by passing in two sparse tensors, which can be initialized with any of the constructors, e.g. `torch.sparse_coo_tensor`.
 
 As a recap of [sparse COO tensors](https://pytorch.org/docs/stable/sparse.html#sparse-coo-tensors), the COO format stands for "Coordinate format", where the specified elements are stored as tuples of their indices and the corresponding values. That is, the following are provided:
 
@@ -84,7 +84,7 @@ the following is simply shorter to write / easier to use
 values = torch.tensor([[0, 0, 3], [4, 0, 5]]).to_sparse()
 mask = torch.tensor([[False, False, True], [False, False, True]]).to_sparse()
 
-mt = masked_tensor(values, mask)
+mt = masked_tensor(values, mask)  
 
 print("values:\n", values.to_dense())
 print("mask:\n", mask.to_dense())

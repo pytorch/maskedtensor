@@ -11,7 +11,7 @@ To install MaskedTensor via pip, use the following command:
 
     pip install maskedtensor-nightly
 
-Note that MaskedTensor requires PyTorch >= 1.11.
+Note that MaskedTensor requires PyTorch >= 1.12 (stable version).
 
 Verification
 ~~~~~~~~~~~~
