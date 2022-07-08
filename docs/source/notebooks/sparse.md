@@ -67,8 +67,9 @@ where `ndim` is the dimensionality of the tensor and `nse` is the number of spec
 +++
 
 For both sparse COO and CSR tensors, you can construct them by doing either:
-1) `masked_tensor(sparse_tensor_data, sparse_tensor_mask)`
-2) `dense_masked_tensor.to_sparse_coo()`
+
+1. `masked_tensor(sparse_tensor_data, sparse_tensor_mask)`
+2. `dense_masked_tensor.to_sparse_coo()`
 
 The is second is easier to illustrate so we have shown that below, but for more on the first and the nuances behind the approach, please read the Appendix at the bottom.
 
@@ -230,7 +231,7 @@ Alternatively, we can also construct a sparse COO MaskedTensor by passing in two
 values = torch.tensor([[0, 0, 3], [4, 0, 5]]).to_sparse()
 mask = torch.tensor([[False, False, True], [False, False, True]]).to_sparse()
 
-mt = masked_tensor(values, mask)  
+mt = masked_tensor(values, mask)
 
 print("values:\n", values)
 print("mask:\n", mask)
