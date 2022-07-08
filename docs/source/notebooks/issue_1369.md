@@ -115,22 +115,19 @@ print("param:\n", param)
 We've been conflating sparsity as an optimization with sparsity as a semantic extension to PyTorch. MaskedTensor proposes to call the semantic extension through sparsity masked. Currently we can't have dense semantics with sparse storage or masked semantics with dense storage. MaskedTensor fixes that because it separates the storage from the semantics. Let's look at above example using a masked gradient.
 
 ```{code-cell} ipython3
-mask = (grad.to_dense() != 0).to_sparse()
-
 # Create an entirely new set of parameters to avoid errors
 param2 = torch.arange(8).reshape(2, 4).float()
-state_sum2 = masked_tensor(
-    torch.full_like(param, 0.5).to_sparse(), # initial value for state sum
-    mask
-)
+state_sum2 = torch.full_like(param, 0.5)  # initial value for state sum
 
+mask = (grad.to_dense() != 0).to_sparse()
 masked_grad = masked_tensor(grad, mask)
 print("masked_grad:\n", masked_grad)
 ```
 
 ```{code-cell} ipython3
 # We can eventually construct a masked std backed by a sparse layout
-std2 = state_sum2 + masked_grad.pow(2)
+state_sum2 = state_sum2 + masked_grad.pow(2).data()
+std2 = masked_tensor(state_sum2.to_sparse(), mask)
 
 # Let's print both this version and the regular version for easier comparison
 print("state_sum:\n", state_sum)
@@ -147,11 +144,8 @@ std2 = std2.sqrt().add(eps)
 print("std:\n", std)
 print("std2:\n", std2)
 
-# .data() indeed returns the sparse layout
+# .data() indeed returns a sparse tensor
 param2 = param2.add((masked_grad / std2).data(), alpha=-clr)
-
-# The final results is the same
-print("param:\n", param)
 print("param2:\n", param2)
 ```
 
@@ -186,7 +180,8 @@ param.add_(_make_sparse(grad, grad_indices, grad_values / std_values), alpha=-cl
 While MaskedTensor minimizes the code to the following snippet:
 
 ```{code-cell} ipython3
-std2 = state_sum2 + masked_grad.pow(2)
+state_sum2 = state_sum2 + masked_grad.pow(2).data()
+std2 = masked_tensor(state_sum2.to_sparse(), mask)
 std2 = std2.sqrt().add(eps)
 param2 = param2.add((masked_grad / std2).data(), alpha=-clr)
 ```
