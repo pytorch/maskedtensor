@@ -64,7 +64,13 @@ As a recap of [sparse COO tensors](https://pytorch.org/docs/stable/sparse.html#s
 
 where `ndim` is the dimensionality of the tensor and `nse` is the number of specified elements
 
-By way of example:
++++
+
+For both sparse COO and CSR tensors, you can construct them by doing either:
+1) `masked_tensor(sparse_tensor_data, sparse_tensor_mask)`
+2) `dense_masked_tensor.to_sparse_coo()`
+
+The is second is easier to illustrate so we have shown that below, but for more on the first and the nuances behind the approach, please read the Appendix at the bottom.
 
 ```{code-cell} ipython3
 # To start, create a MaskedTensor
@@ -97,7 +103,7 @@ Similarly, MaskedTensor also supports the [CSR (Compressed Sparse Row)](https://
 
 Of note, both sparse COO and CSR tensors are in a [beta](https://pytorch.org/docs/stable/index.html) state.
 
-Again, by way of example:
+By way of example (and again, you can find more examples in the Appendix):
 
 ```{code-cell} ipython3
 mt_sparse_csr = mt.to_sparse_csr()
@@ -106,10 +112,6 @@ print("values:\n", mt_sparse_csr.data())
 print("mask:\n", mt_sparse_csr.mask())
 print("mt:\n", mt_sparse_csr)
 ```
-
-You can find examples of how to construct a sparse CSR MaskedTensor by scratch in the Appendix.
-
-+++
 
 ## Supported Operations
 
