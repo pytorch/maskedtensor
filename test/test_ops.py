@@ -80,12 +80,7 @@ def _test_unary_binary_equality(device, dtype, op, layout=torch.strided):
             for arg in sample_args
         ]
 
-        print("input", input)
-        print("mask", mask)
-        print("args", mt_args)
-        print("calculating mt result")
         mt_result = op(mt, *mt_args, **sample_kwargs)
-        print("calculating t_result")
         t_result = op(sample.input, *sample_args, **sample_kwargs)
 
         _compare_mt_t(mt_result, t_result)
