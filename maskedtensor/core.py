@@ -179,7 +179,7 @@ class MaskedToSparseCsr(torch.autograd.Function):
         sparse_mask = mask.to_sparse_csr()
         sparse_data = data.sparse_mask(sparse_mask)
 
-        return MaskedTensor(sparse_data, sparse_mask, requires_grad=True)
+        return MaskedTensor(sparse_data, sparse_mask)
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -551,6 +551,9 @@ class MaskedTensor(torch.Tensor):
 
     def to_tensor(self, value):
         return get_data(self).masked_fill(~get_mask(self), value)
+
+    def data(self):
+        return self.masked_data
 
     def mask(self):
         return self.masked_mask

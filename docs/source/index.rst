@@ -29,6 +29,7 @@ More details can be found in the Overview tutorial.
    :caption: Tutorials:
 
    notebooks/overview
+   notebooks/sparse
    notebooks/nan_grad
    notebooks/safe_softmax
    notebooks/issue_1369

@@ -118,19 +118,24 @@ def torch_binary(fn_name):
         )
         result_mask = get_at_least_one_mask(*args[:2])
         if args[0].layout() == torch.sparse_coo:
-            if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
-                raise ValueError(
-                    "sparse_coo indices must match. If you need support for this, please open an issue on Github."
-                )
-            assert data_args[0].size() == data_args[1].size()
+            if is_masked_tensor(data_args[1]):
+                if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
+                    raise ValueError(
+                        "sparse_coo indices must match. If you need support for this, please open an issue on Github."
+                    )
+                assert data_args[0].size() == data_args[1].size()
+
             i = data_args[0].indices()
             size = data_args[0].size()
             data_args[0] = data_args[0].values()
-            data_args[1] = data_args[1].values()
+            if is_masked_tensor(args[1]) or (
+                torch.is_tensor(args[1]) and args[1].layout == torch.sparse_coo
+            ):
+                data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size)
         elif args[0].layout() == torch.sparse_csr:
-            if not (
+            if is_masked_tensor(data_args[1]) and not (
                 _tensors_match(data_args[0].crow_indices(), data_args[1].crow_indices())
                 and _tensors_match(
                     data_args[0].col_indices(), data_args[1].col_indices()
@@ -143,7 +148,10 @@ def torch_binary(fn_name):
             crow = data_args[0].crow_indices()
             col = data_args[0].col_indices()
             data_args[0] = data_args[0].values()
-            data_args[1] = data_args[1].values()
+            if is_masked_tensor(args[1]) or (
+                torch.is_tensor(args[1]) and args[1].layout == torch.sparse_csr
+            ):
+                data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_csr_tensor(crow, col, v)
         else:
@@ -171,23 +179,29 @@ def torch_inplace_binary(fn_name):
             raise ValueError(
                 "Input masks must match. If you need support for this, please open an issue on Github."
             )
+        from maskedtensor import is_masked_tensor
+
         data_args, data_kwargs = _map_mt_args_kwargs(
             args, kwargs, lambda x: x.masked_data
         )
         if args[0].layout() == torch.sparse_coo:
-            if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
-                raise ValueError(
-                    "sparse_coo indices must match. If you need support for this, please open an issue on Github."
-                )
-            assert data_args[0].size() == data_args[1].size()
+            if is_masked_tensor(data_args[1]):
+                if not _tensors_match(data_args[0].indices(), data_args[1].indices()):
+                    raise ValueError(
+                        "sparse_coo indices must match. If you need support for this, please open an issue on Github."
+                    )
+                assert data_args[0].size() == data_args[1].size()
             i = data_args[0].indices()
             size = data_args[0].size()
             data_args[0] = data_args[0].values()
-            data_args[1] = data_args[1].values()
+            if is_masked_tensor(args[1]) or (
+                torch.is_tensor(args[1]) and args[1].layout == torch.sparse_coo
+            ):
+                data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_coo_tensor(i, v, size)
         elif args[0].layout() == torch.sparse_csr:
-            if not (
+            if is_masked_tensor(data_args[1]) and not (
                 _tensors_match(data_args[0].crow_indices(), data_args[1].crow_indices())
                 and _tensors_match(
                     data_args[0].col_indices(), data_args[1].col_indices()
@@ -200,7 +214,10 @@ def torch_inplace_binary(fn_name):
             crow = data_args[0].crow_indices()
             col = data_args[0].col_indices()
             data_args[0] = data_args[0].values()
-            data_args[1] = data_args[1].values()
+            if is_masked_tensor(args[1]) or (
+                torch.is_tensor(args[1]) and args[1].layout == torch.sparse_csr
+            ):
+                data_args[1] = data_args[1].values()
             v = fn(*data_args)
             result_data = torch.sparse_csr_tensor(crow, col, v)
         else:

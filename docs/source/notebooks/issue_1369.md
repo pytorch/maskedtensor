@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.13.7
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: Python 3.9.12 64-bit ('env')
   language: python
   name: python3
 ---
@@ -34,16 +34,10 @@ In particular we'll point out when sparsity is used as a semantic extension, i.e
 
 ```{code-cell} ipython3
 import torch
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
+from maskedtensor import masked_tensor
 ```
 
-```{code-cell} ipython3
-# Import factory function
-from maskedtensor import masked_tensor
-from maskedtensor import as_masked_tensor
-```
+### Original Sparse Implementation
 
 ```{code-cell} ipython3
 def _make_sparse(grad, grad_indices, values):
@@ -76,10 +70,8 @@ print(state_sum)
 grad = grad.coalesce()  # the update is non-linear so indices must be unique
 grad_indices = grad._indices()
 grad_values = grad._values()
-size = grad.size()
 
-# pow(2) has the same semantics for both sparse and dense memory layouts since
-# 0^2 is zero
+# pow(2) has the same semantics for both sparse and dense memory layouts since 0^2 is zero
 state_sum.add_(_make_sparse(grad, grad_indices, grad_values.pow(2)))
 # We take care to make std sparse, even though state_sum clearly is not.
 # This means that we're only applying the gradient to parts of the state_sum
@@ -116,42 +108,27 @@ param.add_(_make_sparse(grad, grad_indices, grad_values / std_values), alpha=-cl
 print("param:\n", param)
 ```
 
-We've been conflating sparsity as an optimization with sparsity as a semantic extension to PyTorch. MaskedTensor proposes to call the semantic extension through sparsity masked. Currently we can't have dense semantics with sparse storage or masked semantics with dense storage. MaskedTensor fixes that because it separates the storage from the semantics. Let's look at above example using a masked gradient.
+### MaskedTensor Sparse Implementation
 
 +++
 
-Of course we can add sparsity as a storage layout for MaskedTensor which
-compresses repeated undefined values. We can recycle SparseTensor and SparseCSR
-by setting data and mask to an instance of each that share indices.
-However, ideally we'd just have regular torch.Tensors with a sparse layout
-and use those to back MaskedTensor.
-
-```{code-cell} ipython3
-masked_grad = masked_tensor(grad.to_dense(), grad.to_dense() != 0)
-print("masked_grad:\n", masked_grad)
-```
+We've been conflating sparsity as an optimization with sparsity as a semantic extension to PyTorch. MaskedTensor proposes to call the semantic extension through sparsity masked. Currently we can't have dense semantics with sparse storage or masked semantics with dense storage. MaskedTensor fixes that because it separates the storage from the semantics. Let's look at above example using a masked gradient.
 
 ```{code-cell} ipython3
 # Create an entirely new set of parameters to avoid errors
 param2 = torch.arange(8).reshape(2, 4).float()
-state_sum2 = torch.full_like(param, 0.5) # initial value for state sum
+state_sum2 = torch.full_like(param, 0.5)  # initial value for state sum
+
+mask = (grad.to_dense() != 0).to_sparse()
+masked_grad = masked_tensor(grad, mask)
+print("masked_grad:\n", masked_grad)
 ```
 
 ```{code-cell} ipython3
-# This is an excellent example of why to_tensor is important. We don't
-# want to propagate the mask to state_sum, but still maintain the compression.
-# to_tensor could eventually return a Tensor with sparse layout for the
-# special value of zero or first require explicit densification if it can't
-# maintain the layout.
-
-# This is also a value proposition for sparsity
-# as a separate layout and a SparseTensor with dense semantics. MaskedTensor
-# can be much simpler without having to introduce complex maske union and intersection
-# semantics for binary operations.
-
-state_sum2 = state_sum2 + masked_grad.pow(2).to_tensor(0)
 # We can eventually construct a masked std backed by a sparse layout
-std2 = masked_tensor(state_sum2, masked_grad.mask()) #, layout=torch.layout.coo)
+state_sum2 = state_sum2 + masked_grad.pow(2).data()
+std2 = masked_tensor(state_sum2.to_sparse(), mask)
+
 # Let's print both this version and the regular version for easier comparison
 print("state_sum:\n", state_sum)
 print("std:\n", std)
@@ -167,22 +144,28 @@ std2 = std2.sqrt().add(eps)
 print("std:\n", std)
 print("std2:\n", std2)
 
-# to_tensor ideally eventually returns a torch.Tensor with sparse layout
-# but would currently return a SparseTensor.
-param2 = param2.add((masked_grad / std2).to_tensor(0), alpha=-clr)
-
-# The final results is the same
-print("param:\n", param)
+# .data() indeed returns a sparse tensor
+param2 = param2.add((masked_grad / std2).data(), alpha=-clr)
 print("param2:\n", param2)
 ```
 
-```{code-cell} ipython3
-# # For reference, this is the regular, dense code path without masked gradients or sparsity
-# state_sum.addcmul_(grad, grad, value=1)
-# std = state_sum.sqrt().add_(eps)
-# param.addcdiv_(grad, std, value=-clr)
+## Conclusion: Difference in Code
 
-# Compare this to the original for sparse
++++
+
+For reference, this is the regular, dense code path without masked gradients or sparsity:
+
+```
+state_sum.addcmul_(grad, grad, value=1)
+std = state_sum.sqrt().add_(eps)
+param.addcdiv_(grad, std, value=-clr)
+```
+
++++
+
+The vanilla tensor implementation for sparse:
+
+```{code-cell} ipython3
 grad = grad.coalesce()  # the update is non-linear so indices must be unique
 grad_indices = grad._indices()
 grad_values = grad._values()
@@ -192,18 +175,20 @@ state_sum.add_(_make_sparse(grad, grad_indices, grad_values.pow(2)))
 std = state_sum.sparse_mask(grad)
 std_values = std._values().sqrt_().add_(eps)
 param.add_(_make_sparse(grad, grad_indices, grad_values / std_values), alpha=-clr)
-
-# All in all MaskedTensor minimizes the code to the follwing snippet
-state_sum2 = state_sum2 + masked_grad.pow(2).to_tensor(0)
-std2 = masked_tensor(state_sum2, masked_grad.mask()) #, layout=torch.layout.coo)
-std2 = std2.sqrt().add(eps)
-param2 = param2.add((masked_grad / std2).to_tensor(0), alpha=-clr)
-
-# We ran this code again so let's check that the results again match
-print("param:\n", param)
-print("param2:\n", param2)
 ```
 
-```{code-cell} ipython3
+While MaskedTensor minimizes the code to the following snippet:
 
+```{code-cell} ipython3
+state_sum2 = state_sum2 + masked_grad.pow(2).data()
+std2 = masked_tensor(state_sum2.to_sparse(), mask)
+std2 = std2.sqrt().add(eps)
+param2 = param2.add((masked_grad / std2).data(), alpha=-clr)
+```
+
+And for good measure, let's make sure the parameters match:
+
+```{code-cell} ipython3
+print("param:\n", param)
+print("param2:\n", param2)
 ```

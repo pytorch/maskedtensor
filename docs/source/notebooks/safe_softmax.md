@@ -30,13 +30,7 @@ Luckily, MaskedTensor has solved this issue already.
 
 ```{code-cell} ipython3
 import torch
-if "1.11.0" not in torch.__version__:
-    !pip uninstall --y torch
-    !pip install torch -f https://download.pytorch.org/whl/test/cu102/torch_test.html --pre
-
-# Import factory function
 from maskedtensor import masked_tensor
-from maskedtensor import as_masked_tensor
 ```
 
 ```{code-cell} ipython3
