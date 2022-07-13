@@ -26,7 +26,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Distinguishing between 0 and NaN gradient" href="nan_grad.html" />
+    <link rel="next" title="Sparse semantics" href="sparse.html" />
     <link rel="prev" title="Installation" href="../install.html" /> 
 </head>
 
@@ -38,7 +38,7 @@
   <a href="../index.html" class="icon icon-home"> MaskedTensor
   </a>
     <div class="version">
-      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.11.0+git715b113) &#x25BC</a>
+      <a href='https://pytorch.org/maskedtensor/versions.html' style="color:#FFFFFF">main (0.12.0+git8b3c5a5) &#x25BC</a>
     </div>
     
 <div role="search">
@@ -62,11 +62,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#maskedtensor-reduction-semantics">MaskedTensor reduction semantics</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#indexing-and-advanced-indexing">Indexing and Advanced Indexing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#maskedtensor-gradient-examples">MaskedTensor gradient examples</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#a-note-on-is-contiguous">A note on is_contiguous</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="sparse.html">Sparse semantics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nan_grad.html">Distinguishing between 0 and NaN gradient</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safe_softmax.html">Safe Softmax</a></li>
 <li class="toctree-l1"><a class="reference internal" href="issue_1369.html">Efficiency of writing “sparse” semantics for Adagrad</a></li>
@@ -112,6 +112,7 @@
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">masked_tensor</span>
+<span class="kn">from</span> <span class="nn">maskedtensor</span> <span class="kn">import</span> <span class="n">as_masked_tensor</span>
 </pre></div>
 </div>
 </div>
@@ -220,32 +221,32 @@ masked_tensor(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[  5.,  19.,   2.],
-        [ -1.,  -2.,  -6.],
-        [ -8.,   3.,   2.],
-        [ 10.,  -9.,   0.],
-        [-24.,  -2.,  -7.],
-        [ -5., -19.,  -3.],
-        [ 12., -12.,  -2.],
-        [ -1.,  20., -21.]])
-tensor([[ True,  True,  True],
-        [ True,  True,  True],
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>tensor([[ 20., -14.,  -4.],
+        [ 22.,   0.,  16.],
+        [ -9.,  -6.,  -6.],
+        [  4.,   0.,  10.],
+        [  2.,  -1.,  -5.],
+        [ -4.,  -3., -10.],
+        [  1.,  -5.,   0.],
+        [  0.,   6., -20.]])
+tensor([[False, False, False],
+        [ True, False, False],
         [ True,  True,  True],
         [ True, False,  True],
-        [ True, False,  True],
-        [False, False,  True],
-        [False, False,  True],
-        [False, False, False]])
+        [ True, False, False],
+        [False,  True,  True],
+        [False,  True,  True],
+        [ True,  True, False]])
 masked_tensor(
   [
-    [  5.0000,  19.0000,   2.0000],
-    [ -1.0000,  -2.0000,  -6.0000],
-    [ -8.0000,   3.0000,   2.0000],
-    [ 10.0000,       --,   0.0000],
-    [-24.0000,       --,  -7.0000],
-    [      --,       --,  -3.0000],
-    [      --,       --,  -2.0000],
-    [      --,       --,       --]
+    [      --,       --,       --],
+    [ 22.0000,       --,       --],
+    [ -9.0000,  -6.0000,  -6.0000],
+    [  4.0000,       --,  10.0000],
+    [  2.0000,       --,       --],
+    [      --,  -3.0000, -10.0000],
+    [      --,  -5.0000,   0.0000],
+    [  0.0000,   6.0000,       --]
   ]
 )
 </pre></div>
@@ -265,19 +266,19 @@ masked_tensor(
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>sum: masked_tensor(
-  [ 26.0000,  -9.0000,  -3.0000,  10.0000, -31.0000,  -3.0000,  -2.0000,       --]
+  [      --,  22.0000, -21.0000,  14.0000,   2.0000, -13.0000,  -5.0000,   6.0000]
 )
 mean: masked_tensor(
-  [  8.6667,  -3.0000,  -1.0000,   5.0000, -15.5000,  -3.0000,  -2.0000,       --]
+  [      --,  22.0000,  -7.0000,   7.0000,   2.0000,  -6.5000,  -2.5000,   3.0000]
 )
 prod: masked_tensor(
-  [190.0000, -12.0000, -48.0000,   0.0000, 168.0000,  -3.0000,  -2.0000,       --]
+  [       --,  22.0000, -324.0000,  40.0000,   2.0000,  30.0000,  -0.0000,   0.0000]
 )
 min: masked_tensor(
-  [  2.0000,  -6.0000,  -8.0000,   0.0000, -24.0000,  -3.0000,  -2.0000,       --]
+  [      --,  22.0000,  -9.0000,   4.0000,   2.0000, -10.0000,  -5.0000,   0.0000]
 )
 max: masked_tensor(
-  [ 19.0000,  -1.0000,   3.0000,  10.0000,  -7.0000,  -3.0000,  -2.0000,       --]
+  [      --,  22.0000,  -6.0000,  10.0000,   2.0000,  -3.0000,   0.0000,   6.0000]
 )
 </pre></div>
 </div>
@@ -344,32 +345,32 @@ npm0.sum(0) + npm1.sum(0):
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
     [
-      [ -4.6369,   5.8552,       --],
-      [ -4.4601,       --,       --],
-      [  5.7813,   0.7142,   5.2377],
-      [      --,   9.8677,  -0.0142],
-      [  4.3509,       --,   9.4802]
+      [ -6.0792,       --,       --],
+      [      --,       --,  -1.9683],
+      [ -2.3700,  -1.9161,  -1.8073],
+      [ -3.9613,  -2.5290,  -9.9581],
+      [      --,       --,  -1.3996]
     ],
     [
-      [      --,       --,   0.3450],
-      [  5.4709,       --,       --],
-      [ -4.6163,       --,       --],
-      [      --,   3.6392,       --],
-      [      --,       --,   4.4581]
+      [ -4.7627,   0.4052,  -2.2773],
+      [      --,  -0.7082,       --],
+      [      --,       --,       --],
+      [      --,       --,   0.5614],
+      [  2.4055,       --,       --]
     ],
     [
-      [      --,       --,   0.0230],
-      [ -6.0262,       --,       --],
-      [      --,   0.6406,       --],
-      [      --,       --,  -4.1567],
-      [      --,       --,       --]
+      [  4.9276,  -2.9012,       --],
+      [      --,  -6.6361,   2.5489],
+      [  3.0996,  -3.8993,       --],
+      [ -0.2633,   0.0727,       --],
+      [ -4.5588,   4.1068,       --]
     ],
     [
-      [ -6.9996,       --,  -0.8156],
-      [      --,   6.3424,       --],
-      [      --,   3.0394,   4.7055],
-      [      --,       --,   1.6785],
-      [  8.0755,       --,  -3.6236]
+      [ -3.0962,   3.4735,       --],
+      [ -9.2337,  -2.1719,       --],
+      [  2.9923,       --,       --],
+      [      --,   2.8241,   6.9662],
+      [      --,  -3.4862,   4.1371]
     ]
   ]
 )
@@ -389,33 +390,33 @@ npm0.sum(0) + npm1.sum(0):
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>masked_tensor(
   [
-    [ -4.6369,   5.8552,       --],
-    [ -4.4601,       --,       --],
-    [  5.7813,   0.7142,   5.2377],
-    [      --,   9.8677,  -0.0142],
-    [  4.3509,       --,   9.4802]
+    [ -6.0792,       --,       --],
+    [      --,       --,  -1.9683],
+    [ -2.3700,  -1.9161,  -1.8073],
+    [ -3.9613,  -2.5290,  -9.9581],
+    [      --,       --,  -1.3996]
   ]
 )
 masked_tensor(
   [
     [
-      [ -4.6369,   5.8552,       --],
-      [ -4.4601,       --,       --],
-      [  5.7813,   0.7142,   5.2377],
-      [      --,   9.8677,  -0.0142],
-      [  4.3509,       --,   9.4802]
+      [ -6.0792,       --,       --],
+      [      --,       --,  -1.9683],
+      [ -2.3700,  -1.9161,  -1.8073],
+      [ -3.9613,  -2.5290,  -9.9581],
+      [      --,       --,  -1.3996]
     ],
     [
-      [      --,       --,   0.0230],
-      [ -6.0262,       --,       --],
-      [      --,   0.6406,       --],
-      [      --,       --,  -4.1567],
-      [      --,       --,       --]
+      [  4.9276,  -2.9012,       --],
+      [      --,  -6.6361,   2.5489],
+      [  3.0996,  -3.8993,       --],
+      [ -0.2633,   0.0727,       --],
+      [ -4.5588,   4.1068,       --]
     ]
   ]
 )
 masked_tensor(
-  [ -4.6369,   5.8552,  -4.4601,   5.7813,   0.7142,   5.2377,   9.8677,  -0.0142,   4.3509,   9.4802,   0.3450,   5.4709,  -4.6163,   3.6392,   4.4581,   0.0230,  -6.0262,   0.6406,  -4.1567,  -6.9996,  -0.8156,   6.3424,   3.0394,   4.7055,   1.6785,   8.0755,  -3.6236]
+  [ -6.0792,  -1.9683,  -2.3700,  -1.9161,  -1.8073,  -3.9613,  -2.5290,  -9.9581,  -1.3996,  -4.7627,   0.4052,  -2.2773,  -0.7082,   0.5614,   2.4055,   4.9276,  -2.9012,  -6.6361,   2.5489,   3.0996,  -3.8993,  -0.2633,   0.0727,  -4.5588,   4.1068,  -3.0962,   3.4735,  -9.2337,  -2.1719,   2.9923,   2.8241,   6.9662,  -3.4862,   4.1371]
 )
 </pre></div>
 </div>
@@ -548,48 +549,6 @@ y.grad:  masked_tensor(
 </div>
 </div>
 </section>
-<section id="a-note-on-is-contiguous">
-<h3>A note on is_contiguous<a class="headerlink" href="#a-note-on-is-contiguous" title="Permalink to this heading"></a></h3>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># is_contiguous doesn&#39;t work</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
-<span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">is_contiguous</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">stride</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">masked_data</span><span class="o">.</span><span class="n">is_contiguous</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">masked_data</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">masked_data</span><span class="o">.</span><span class="n">stride</span><span class="p">())</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">is_contiguous</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">stride</span><span class="p">())</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">is_contiguous</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">mt</span><span class="o">.</span><span class="n">stride</span><span class="p">())</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True torch.Size([2, 1, 2]) (2, 2, 1)
-True torch.Size([2, 1, 2]) (2, 4, 1)
-True torch.Size([2, 1, 2]) (2, 2, 1)
-True torch.Size([2, 1, 2]) (2, 2, 1)
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Because .contiguous doesn&#39;t work we need to modify view to use reshape instead</span>
-<span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">masked_tensor</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">mt</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">view</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
-<span class="n">mt</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-</div>
-</section>
 </section>
 </section>
 
@@ -598,7 +557,7 @@ True torch.Size([2, 1, 2]) (2, 2, 1)
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../install.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="nan_grad.html" class="btn btn-neutral float-right" title="Distinguishing between 0 and NaN gradient" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sparse.html" class="btn btn-neutral float-right" title="Sparse semantics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
